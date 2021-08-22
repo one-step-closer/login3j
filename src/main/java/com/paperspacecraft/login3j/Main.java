@@ -1,6 +1,7 @@
 package com.paperspacecraft.login3j;
 
 import com.paperspacecraft.login3j.event.GlobalListener;
+import com.paperspacecraft.login3j.settings.InitializationState;
 import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.ui.PasswordDialog;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
@@ -29,8 +30,10 @@ public class Main {
     private static final Supplier<String> AUTOSTART_LABEL_SUPPLIER = () -> SystemHelper.getInstance().getAutostartState() ? "Remove from Autostart" : "Add to Autostart";
 
     public static void main(String[] args) {
-        WindowManager.INSTANCE.setDefaultLookAndFeel();
-        if (retrieveSettings() != Settings.InitializationState.SUCCESS) {
+        Settings.INSTANCE.initializeUnprotected();
+        WindowManager.INSTANCE.refresh();
+
+        if (initializeProtectedSettings() != InitializationState.SUCCESS) {
             LOG.error("Unauthorized access or an initialization error. Application will exit");
             return;
         }
@@ -39,9 +42,9 @@ public class Main {
         Settings.INSTANCE.setCallback(Main::applySettings);
     }
 
-    private static Settings.InitializationState retrieveSettings() {
+    private static InitializationState initializeProtectedSettings() {
         if (Settings.INSTANCE.isAuthorized()) {
-            return Settings.INSTANCE.initialize(StringUtils.EMPTY);
+            return Settings.INSTANCE.initializeProtected(StringUtils.EMPTY);
         }
         boolean isFirstPasswordRequest = true;
         while (true) {
@@ -49,10 +52,10 @@ public class Main {
                     null,
                     isFirstPasswordRequest ? "Settings are protected. Please enter the password" : "Wrong password. Try again");
             if (userPassword == null) {
-                return Settings.InitializationState.NOT_AUTHORIZED;
+                return InitializationState.NOT_AUTHORIZED;
             }
-            Settings.InitializationState result = Settings.INSTANCE.initialize(userPassword);
-            if (result != Settings.InitializationState.NOT_AUTHORIZED) {
+            InitializationState result = Settings.INSTANCE.initializeProtected(userPassword);
+            if (result != InitializationState.NOT_AUTHORIZED) {
                 return result;
             }
             isFirstPasswordRequest = false;
