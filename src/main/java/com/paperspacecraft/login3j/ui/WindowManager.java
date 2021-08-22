@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.synth.SynthLookAndFeel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,50 +18,88 @@ public class WindowManager {
     private static final Logger LOG = LoggerFactory.getLogger(WindowManager.class);
 
     public static final WindowManager INSTANCE = new WindowManager();
+    private static final String CUSTOM_LAF = "custom";
 
     private final List<UpdateableWindow> windows = new ArrayList<>();
-    private String currentPlafName;
+    private String currentLafName;
     private int currentFontSize;
+    private final CustomStyleFactory styleFactory = new CustomStyleFactory();
 
     public void refresh() {
-        boolean lookAndFeelUpdated = false;
-        String plafName = Settings.INSTANCE.getLookAndFeel();
-        if (!StringUtils.equals(plafName, currentPlafName)) {
-            setLookAndFeel(Settings.INSTANCE.getLookAndFeel());
-            currentPlafName = plafName;
-            lookAndFeelUpdated = true;
+
+        String newLafName = StringUtils.EMPTY;
+        if (!StringUtils.equals(Settings.INSTANCE.getLookAndFeel(), currentLafName)) {
+            try {
+                newLafName = setLookAndFeel(Settings.INSTANCE.getLookAndFeel());
+            } catch (ApplyLookAndFeelException e) {
+                return;
+            }
+        }
+        if (CUSTOM_LAF.equals(newLafName) || (CUSTOM_LAF.equals(currentLafName) && newLafName.isEmpty())) {
+            // If the current theme has switched to "custom", or it _remains_ custom, we need to reset the styles
+            styleFactory.reset();
         }
 
-        int fontSize = Settings.INSTANCE.getFontSize();
-        if (fontSize != currentFontSize || lookAndFeelUpdated) {
-            adjustFont("Button.font", fontSize);
-            adjustFont("Label.font", fontSize);
-            adjustFont("TextArea.font", fontSize);
-            currentFontSize = fontSize;
+        // Font size adjustment is for a non-Synth look and feel
+        if (!CUSTOM_LAF.equals(newLafName)) {
+            int fontSize = Settings.INSTANCE.getFontSize();
+            if (fontSize != currentFontSize && UIManager.getSystemLookAndFeelClassName().equals(newLafName)) {
+                setFontSize(fontSize);
+            }
         }
+
+        currentLafName = newLafName;
         windows.forEach(UpdateableWindow::update);
     }
 
-    public void setDefaultLookAndFeel() {
-        setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-    }
-
-    private void setLookAndFeel(String name) {
+    private String setLookAndFeel(String name) throws ApplyLookAndFeelException {
+        boolean isCustom = CUSTOM_LAF.equalsIgnoreCase(name);
+        if (isCustom && !setCustomLookAndFeel()) {
+            name = UIManager.getSystemLookAndFeelClassName();
+            isCustom = false;
+        }
+        if (isCustom) {
+            return name;
+        }
         try {
             UIManager.setLookAndFeel(name);
-            currentPlafName = name;
+            return name;
         } catch (UnsupportedLookAndFeelException
                 | InstantiationException
                 | IllegalAccessException
                 | ClassNotFoundException e) {
-            LOG.error("Could not set look and feel", e);
+            LOG.error("Could not apply look and feel \"{}\"", name, e);
+            throw new ApplyLookAndFeelException();
         }
+    }
+
+    private boolean setCustomLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(new SynthLookAndFeel());
+            SynthLookAndFeel.setStyleFactory(styleFactory);
+            return true;
+        } catch (UnsupportedLookAndFeelException e) {
+            LOG.error("Could not apply custom look and feel. Using system defaults", e);
+        }
+        return false;
+    }
+
+    private void setFontSize(int fontSize) {
+        adjustFont("Button.font", fontSize);
+        adjustFont("OptionPane.buttonFont", fontSize);
+        adjustFont("Label.font", fontSize);
+        adjustFont("TextArea.font", fontSize);
+        adjustFont("TextField.font", fontSize);
+        adjustFont("PasswordField.font", fontSize);
+        currentFontSize = fontSize;
     }
 
     private static void adjustFont(String name, int size) {
         FontUIResource current = (FontUIResource) UIManager.getLookAndFeelDefaults().get(name);
-        FontUIResource adjusted = new FontUIResource(current.deriveFont((float) size));
-        UIManager.getLookAndFeelDefaults().put(name, adjusted);
+        if (current != null) {
+            FontUIResource adjusted = new FontUIResource(current.deriveFont((float) size));
+            UIManager.getLookAndFeelDefaults().put(name, adjusted);
+        }
     }
 
     void register(UpdateableWindow window) {
@@ -70,4 +109,6 @@ public class WindowManager {
     void unregister(UpdateableWindow window) {
         windows.remove(window);
     }
+
+    private static class ApplyLookAndFeelException extends Exception {}
 }
