@@ -13,7 +13,7 @@ import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class PasswordRepeatDialog {
-    private static final String EMPTY_PASSWORD_NOTICE = "<html><span style='font-size:.8 em; font-style: italic'>Empty string is for discarding password protection</span></html>";
+    private static final String EMPTY_PASSWORD_NOTICE = "Empty string is for discarding password protection";
 
     public static List<String> show(Component parent, boolean askForPrevious) {
         JPanel outerPanel = new JPanel();
@@ -71,7 +71,7 @@ class PasswordRepeatDialog {
         innerPanel.add(label, BorderLayout.NORTH);
         innerPanel.add(passwordField, BorderLayout.CENTER);
         if (StringUtils.isNotEmpty(secondary)) {
-            JLabel label2 = new JLabel(secondary);
+            JLabel label2 = new HintLabel(secondary);
             innerPanel.add(label2, BorderLayout.SOUTH);
         }
         return innerPanel;

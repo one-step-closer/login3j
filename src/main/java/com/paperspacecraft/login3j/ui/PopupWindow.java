@@ -5,7 +5,6 @@ import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.settings.action.Action;
 import com.paperspacecraft.login3j.settings.action.ActionVisualizationType;
 import com.paperspacecraft.login3j.util.ScreenUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,11 +14,6 @@ import java.util.function.Consumer;
 public class PopupWindow extends JFrame implements UpdateableWindow {
     private static final AtomicReference<PopupWindow> INSTANCE = new AtomicReference<>();
 
-    private static final String ACTION_LABEL = "<html>" +
-            "<table style='width: 240'><tr><td style='width:200;margin:0;padding:0'>&nbsp;&nbsp;%s</td><td style='width:40;text-align:right;'>%s</td></tr></table>\n" +
-            "</html>";
-    private static final String ACTION_HOTKEY_LABEL = "<span style='color:#999999;font-size:.9em;'>%s</span>";
-    private static final String ACTION_DIVIDER_LABEL = "<html><span style='color:#999999;font-size:.9em;font-weight: bold'>%s</span></html>";
     private static final Icon BUTTON_ICON = new ImageIcon(Toolkit.getDefaultToolkit().getImage(PopupWindow.class.getResource("/button.png")));
 
     private final JPanel pnlContent;
@@ -32,6 +26,7 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         pnlContent.setLayout(new BoxLayout(pnlContent, BoxLayout.Y_AXIS));
 
         JScrollPane pnlMain = new JScrollPane(pnlContent);
+        pnlMain.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         pnlMain.setBorder(BorderFactory.createEmptyBorder());
         setContentPane(pnlMain);
 
@@ -71,16 +66,19 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
     }
 
     private void addCommand(Action action) {
-        String hotkeyLabel = action.getHotkey() != null
-                ? String.format(ACTION_HOTKEY_LABEL, action.getHotkey().toString())
-                : StringUtils.EMPTY;
-        String fullLabel = String.format(ACTION_LABEL, action.getLabel(), hotkeyLabel);
-        JButton button = new JButton(fullLabel);
-        button.setIcon(BUTTON_ICON);
+        JButton button = new JButton(action.getLabel());
+        button.setName("ActionButton");
+        if (action.getHotkey() != null) {
+            button.setLayout(new BorderLayout());
+            JLabel hotkey = new HintLabel(action.getHotkey().toString());
+            hotkey.setOpaque(false);
+            button.add(hotkey, BorderLayout.EAST);
+        }
+//        button.setIcon(BUTTON_ICON);
         button.setMaximumSize(new Dimension(Integer.MAX_VALUE, button.getMaximumSize().height));
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setFocusable(false);
-        button.setBorder(BorderFactory.createEmptyBorder(1, 2,1,2));
+        button.setOpaque(true);
         if (action.getCommand() != null && Settings.INSTANCE.getShowTooltips()) {
             button.setToolTipText(action.getCommand().toString());
         }
@@ -94,7 +92,7 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
     private void addDivider(Action action) {
         JLabel newLabel = new DragLabel(
                 this,
-                String.format(ACTION_DIVIDER_LABEL, action.getLabel()),
+                action.getLabel(),
                 SwingConstants.CENTER);
         newLabel.setBorder(BorderFactory.createEmptyBorder(3,0,3,0));
         newLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, newLabel.getMaximumSize().height));
