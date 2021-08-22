@@ -14,8 +14,6 @@ import java.util.function.Consumer;
 public class PopupWindow extends JFrame implements UpdateableWindow {
     private static final AtomicReference<PopupWindow> INSTANCE = new AtomicReference<>();
 
-    private static final Icon BUTTON_ICON = new ImageIcon(Toolkit.getDefaultToolkit().getImage(PopupWindow.class.getResource("/button.png")));
-
     private final JPanel pnlContent;
     private boolean isDisposed;
 
@@ -74,7 +72,6 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
             hotkey.setOpaque(false);
             button.add(hotkey, BorderLayout.EAST);
         }
-//        button.setIcon(BUTTON_ICON);
         button.setMaximumSize(new Dimension(Integer.MAX_VALUE, button.getMaximumSize().height));
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setFocusable(false);
