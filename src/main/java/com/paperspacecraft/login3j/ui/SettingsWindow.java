@@ -19,7 +19,7 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
         setTitle("Settings");
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-        text = new JTextArea(Settings.INSTANCE.getText());
+        text = new JournaledTextArea(Settings.INSTANCE.getText());
         text.setOpaque(true);
         text.setMargin(new Insets(5, 5, 5, 5));
 
