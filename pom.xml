@@ -11,6 +11,8 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <project.title>Login3j</project.title>
+        <project.vendor>PaperSpacecraft</project.vendor>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -61,9 +63,19 @@
             <version>1.2.3</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Build -->
+        <dependency>
+            <groupId>com.akathist.maven.plugins.launch4j</groupId>
+            <artifactId>launch4j-maven-plugin</artifactId>
+            <version>2.1.2</version>
+        </dependency>
     </dependencies>
 
     <repositories>
+        <repository>
+            <id>OSS Sonatype</id>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
         <repository>
             <id>Mulesoft</id>
             <url>https://repository.mulesoft.org/nexus/content/repositories/public</url>
@@ -126,4 +138,73 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>build-win</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <executions>
+                            <execution>
+                                <id>timestamp-property</id>
+                                <goals>
+                                    <goal>timestamp-property</goal>
+                                </goals>
+                                <phase>validate</phase>
+                                <configuration>
+                                    <name>current.year</name>
+                                    <pattern>yyyy</pattern>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                        <artifactId>launch4j-maven-plugin</artifactId>
+                        <version>2.1.2</version>
+                        <executions>
+                            <execution>
+                                <id>plugin-loader</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>launch4j</goal>
+                                </goals>
+                                <configuration>
+                                    <headerType>gui</headerType>
+                                    <outfile>target/${project.artifactId}-${project.version}-full.exe</outfile>
+                                    <jar>target/${project.artifactId}-${project.version}.jar</jar>
+                                    <errTitle>${project.title}</errTitle>
+                                    <icon>login3.ico</icon>
+                                    <classPath>
+                                        <mainClass>com.paperspacecraft.login3j.Main</mainClass>
+                                        <addDependencies>true</addDependencies>
+                                        <jarLocation>/lib</jarLocation>
+                                        <preCp>anything</preCp>
+                                    </classPath>
+                                    <jre><minVersion>1.8</minVersion></jre>
+                                    <versionInfo>
+                                        <fileVersion>1.0.0.0</fileVersion>
+                                        <txtFileVersion>${project.version}</txtFileVersion>
+                                        <fileDescription>Java Swing application</fileDescription>
+                                        <productVersion>1.0.0.0</productVersion>
+                                        <txtProductVersion>1.0.0.0</txtProductVersion>
+                                        <!--suppress UnresolvedMavenProperty -->
+                                        <copyright>${current.year} ${project.vendor}</copyright>
+                                        <companyName>${project.vendor}</companyName>
+                                        <productName>${project.title}</productName>
+                                        <internalName>${project.artifactId}-${project.version}-full</internalName>
+                                        <originalFilename>${project.artifactId}-${project.version}-full.exe</originalFilename>
+                                    </versionInfo>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
