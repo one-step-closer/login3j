@@ -36,7 +36,7 @@ class WindowsSystemHelper extends SystemHelper {
 
     @Override
     public boolean isAutostartAvailable() {
-        return StringUtils.endsWithIgnoreCase(currentJavaPath, ".jar");
+        return StringUtils.endsWithAny(currentJavaPath.toLowerCase(), ".jar", ".exe");
     }
 
     @Override
@@ -59,14 +59,18 @@ class WindowsSystemHelper extends SystemHelper {
     @Override
     public void setAutostartState(boolean value) {
         if (value) {
-            executeShell("reg ADD HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
+            String wrappedPath = StringUtils.endsWithIgnoreCase(currentJavaPath, ".jar")
+                    ? "\"java -jar \\\"" + currentJavaPath + "\\\"\""
+                    : "\"" + currentJavaPath + "\"";
+            String shellCommand = "reg ADD HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
                     + Main.APP_NAME
-                    + " /t REG_SZ /d \""
-                    + "java -jar \\\""
-                    + currentJavaPath + "\\\"\"");
+                    + " /t REG_SZ /d "
+                    + wrappedPath;
+            executeShell(shellCommand);
         } else {
-            executeShell("reg DELETE HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
-                    + Main.APP_NAME + " /f");
+            String shellCommand = "reg DELETE HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
+                    + Main.APP_NAME + " /f";
+            executeShell(shellCommand);
         }
     }
 }

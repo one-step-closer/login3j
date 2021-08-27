@@ -1,13 +1,13 @@
 package com.paperspacecraft.login3j.ui;
 
 import com.paperspacecraft.login3j.Main;
-import org.apache.commons.lang3.StringUtils;
 import com.paperspacecraft.login3j.settings.Settings;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SettingsWindow extends JFrame implements UpdateableWindow {
     private static final AtomicReference<SettingsWindow> INSTANCE = new AtomicReference<>();
@@ -19,22 +19,26 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
         setTitle("Settings");
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-        text = new JTextArea(Settings.INSTANCE.getText());
+        text = new JournaledTextArea(Settings.INSTANCE.getText());
+        text.setOpaque(true);
         text.setMargin(new Insets(5, 5, 5, 5));
 
         JScrollPane jScrollPane = new JScrollPane(text);
         jScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         JButton btnPassword = new JButton("Password...");
+        btnPassword.setOpaque(true);
         btnPassword.addMouseListener(new ButtonMouseAdapter(this::onPasswordClicked));
 
         JPanel pnlButtonsLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         pnlButtonsLeft.add(btnPassword);
 
         JButton btnOk = new JButton("OK");
+        btnOk.setOpaque(true);
         btnOk.addMouseListener(new ButtonMouseAdapter(this::onOkClicked));
 
         JButton btnCancel = new JButton("Cancel");
+        btnCancel.setOpaque(true);
         btnCancel.addMouseListener(new ButtonMouseAdapter(this::onCancelClicked));
 
         JPanel pnlButtonsRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));

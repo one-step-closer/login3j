@@ -16,6 +16,8 @@ import java.util.Map;
 public class IniUtil {
     private static final Logger LOG = LoggerFactory.getLogger(IniUtil.class);
 
+    private static final String PARSING_ERROR_MESSAGE = "Could not parse settings file";
+
     private static final String COMMENT_SIGN = "#";
     private static final String SUBHEADER_SIGN = "###";
     private static final String EQ_SIGN = "=";
@@ -35,7 +37,7 @@ public class IniUtil {
                 }
             }
         } catch (IOException e) {
-            LOG.error("Could not parse settings file", e);
+            LOG.error(PARSING_ERROR_MESSAGE, e);
         }
         return null;
     }
@@ -66,8 +68,37 @@ public class IniUtil {
                 }
             }
         } catch (IOException e) {
-            LOG.error("Could not parse settings file", e);
+            LOG.error(PARSING_ERROR_MESSAGE, e);
         }
         return result;
     }
+
+    public static String getTextForSection(String text, String name) {
+        return getTextForSection(text, name, false);
+    }
+
+    public static String getTextExceptSection(String text, String name) {
+        return getTextForSection(text, name, true);
+    }
+
+    private static String getTextForSection(String text, String name, boolean invert) {
+        StringBuilder result = new StringBuilder();
+        try(Reader reader = new StringReader(text)) {
+            boolean optionMatch = false;
+            for (String line: IOUtils.readLines(reader)) {
+                if (!optionMatch && StringUtils.startsWithIgnoreCase(line, BR_OPEN + name + BR_CLOSE)) {
+                    optionMatch = true;
+                } else if (optionMatch && StringUtils.startsWith(line, BR_OPEN) && StringUtils.contains(line, BR_CLOSE)) {
+                    optionMatch = false;
+                }
+                if ((optionMatch && !invert) || (!optionMatch && invert)) {
+                    result.append(line.trim()).append(System.lineSeparator());
+                }
+            }
+        } catch (IOException e) {
+            LOG.error(PARSING_ERROR_MESSAGE, e);
+        }
+        return StringUtils.strip(result.toString(), "\r\n");
+    }
+
 }

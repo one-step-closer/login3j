@@ -18,6 +18,11 @@ class DragLabel extends JLabel {
         addMouseMotionListener(new MouseMotionListener());
     }
 
+    @Override
+    public String getName() {
+        return "ActionLabel.hint";
+    }
+
     private class MouseListener extends MouseAdapter {
         @Override
         public void mousePressed(MouseEvent e) {
