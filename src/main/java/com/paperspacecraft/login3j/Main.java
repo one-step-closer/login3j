@@ -38,6 +38,7 @@ public class Main {
             return;
         }
         applySettings();
+        GlobalListener.INSTANCE.setEnabled(Settings.INSTANCE.isStartEnabled());
         initSystemTray(createPopupMenu());
         Settings.INSTANCE.setCallback(Main::applySettings);
     }
@@ -63,9 +64,8 @@ public class Main {
     }
 
     private static void applySettings() {
-
-        GlobalListener.INSTANCE.setEnabled(false); // to reset listener state
-        GlobalListener.INSTANCE.setEnabled(Settings.INSTANCE.isStartEnabled());
+        // Update GlobalListener
+        GlobalListener.INSTANCE.refresh();
 
         // Update global UI
         WindowManager.INSTANCE.refresh();

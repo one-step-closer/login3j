@@ -46,7 +46,7 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
        ------------------ */
 
     public boolean isEnabled() {
-        return enabled;
+        return enabled && listenersInstalled;
     }
 
     public void setEnabled(boolean value) {
@@ -61,18 +61,9 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
         if (enabled) {
             return;
         }
-        boolean hasMouseHotkeys = Settings.INSTANCE.getActions()
-                .stream()
-                .map(com.paperspacecraft.login3j.settings.action.Action::getHotkey)
-                .filter(Objects::nonNull)
-                .anyMatch(Hotkey::isMouse);
-        boolean hasKeyboardHotkeys = Settings.INSTANCE.getActions()
-                .stream()
-                .map(Action::getHotkey)
-                .filter(Objects::nonNull)
-                .anyMatch(Hotkey::isKeyboard);
-        if (!hasKeyboardHotkeys && !hasMouseHotkeys) {
-            return;
+        if (hasBeenEnabledBefore) {
+            // Needed for 2.2-SNAPSHOT because after disabling, eventDispatcher is not voided but is in the shutdown state
+            GlobalScreen.setEventDispatcher(null);
         }
         try {
             GlobalScreen.registerNativeHook();
@@ -91,6 +82,8 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
                 multiClickTimer.start();
             }
             enabled = true;
+            hasBeenEnabledBefore = true;
+            refresh();
         } catch (NativeHookException e) {
             LOG.error("Could not register global listener hook", e);
         }
@@ -100,20 +93,49 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
         if (!enabled) {
             return;
         }
-        GlobalScreen.removeNativeKeyListener(this);
-        GlobalScreen.removeNativeMouseListener(this);
         try {
             GlobalScreen.unregisterNativeHook();
             enabled = false;
         } catch (NativeHookException e) {
             LOG.error("Could not unregister global listener hook", e);
         }
+    }
+
+    public void refresh() {
+        GlobalScreen.removeNativeKeyListener(this);
+        boolean hasKeyboardHotkeys = Settings.INSTANCE.getActions()
+                .stream()
+                .map(Action::getHotkey)
+                .filter(Objects::nonNull)
+                .anyMatch(Hotkey::isKeyboard);
+        if (hasKeyboardHotkeys) {
+            GlobalScreen.addNativeKeyListener(this);
+        }
+
+        GlobalScreen.removeNativeMouseListener(this);
         if (multiClickTimer != null) {
             multiClickTimer.stop();
         }
-        leftMouseCount.set(0);
-        middleMouseCount.set(0);
-        rightMouseCount.set(0);
+        boolean hasMouseHotkeys = Settings.INSTANCE.getActions()
+                .stream()
+                .map(com.paperspacecraft.login3j.settings.action.Action::getHotkey)
+                .filter(Objects::nonNull)
+                .anyMatch(Hotkey::isMouse);
+        if (hasMouseHotkeys) {
+            GlobalScreen.addNativeMouseListener(this);
+            multiClickTimer = new Timer(
+                    (int) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval"),
+                    e -> clearMouseCounters());
+            multiClickTimer.start();
+        }
+
+        listenersInstalled = hasKeyboardHotkeys || hasMouseHotkeys;
+    }
+
+    private void clearMouseCounters() {
+        mouseCount.set(0);
+        lastMouseButton.set(0);
+        lastMouseModifier.set(0);
     }
 
     /* -----------
