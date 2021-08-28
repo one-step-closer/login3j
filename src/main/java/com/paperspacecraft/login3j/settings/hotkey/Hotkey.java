@@ -3,9 +3,9 @@ package com.paperspacecraft.login3j.settings.hotkey;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jnativehook.NativeInputEvent;
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.NativeInputEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +106,7 @@ public abstract class Hotkey {
                 || (modifiers & NativeInputEvent.CTRL_R_MASK) == NativeInputEvent.CTRL_R_MASK;
     }
 
-    private static boolean isAlt(Integer modifiers) {
+    public static boolean isAlt(Integer modifiers) {
         return (modifiers & NativeInputEvent.ALT_L_MASK) == NativeInputEvent.ALT_L_MASK
                 || (modifiers & NativeInputEvent.ALT_R_MASK) == NativeInputEvent.ALT_R_MASK;
     }
