@@ -94,8 +94,8 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
     }
 
     private void onOkClicked() {
-        Settings.INSTANCE.setText(text.getText());
         Settings.INSTANCE.setWindowBounds(getBounds());
+        Settings.INSTANCE.setText(text.getText());
         dispose();
     }
 
