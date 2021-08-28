@@ -92,7 +92,7 @@ public class Main {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    SettingsWindow.getInstance().setVisible(true);
+                    SettingsWindow.getInstance().show(Settings.INSTANCE.getWindowBounds());
                 }
             }
         });
@@ -108,7 +108,7 @@ public class Main {
 
         MenuItem settingsItem = new MenuItem("Settings...");
         settingsItem.setName("menu:settings");
-        settingsItem.addActionListener(e -> SettingsWindow.getInstance().setVisible(true));
+        settingsItem.addActionListener(e -> SettingsWindow.getInstance().show(Settings.INSTANCE.getWindowBounds()));
         result.add(settingsItem);
 
         MenuItem enabledItem = new MenuItem(ENABLED_LABEL_SUPPLIER.get());

@@ -176,6 +176,18 @@ public class Settings {
         setText(value);
     }
 
+    public Rectangle getWindowBounds() {
+        String[] parts =  preferences.get(KEY_WINDOW_BOUNDS, StringUtils.EMPTY).split(",");
+        if (parts.length != 4 || Arrays.stream(parts).anyMatch(part -> !StringUtils.isNumeric(part))) {
+            return null;
+        }
+        return new Rectangle(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]));
+    }
+
+    public void setWindowBounds(Rectangle value) {
+        preferences.put(KEY_WINDOW_BOUNDS, String.format(WINDOW_BOUNDS_FORMAT, value.x, value.y, value.width, value.height));
+    }
+
     /* ----------
        Encryption
        ---------- */

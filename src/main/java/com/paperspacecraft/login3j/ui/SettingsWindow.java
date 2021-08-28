@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,6 +20,13 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
     private SettingsWindow() {
         setTitle("Settings");
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                Settings.INSTANCE.setWindowBounds(getBounds());
+            }
+        });
 
         text = new JournaledTextArea(Settings.INSTANCE.getText());
         text.setOpaque(true);
@@ -65,24 +74,33 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
     }
 
     @Override
-    public void update() {
-        SwingUtilities.updateComponentTreeUI(this);
-        this.pack();
-    }
-
-    @Override
     public void dispose() {
         WindowManager.INSTANCE.unregister(this);
         super.dispose();
         isDisposed = true;
     }
 
+    @Override
+    public void update() {
+        SwingUtilities.updateComponentTreeUI(this);
+        this.pack();
+    }
+
+    public void show(Rectangle bounds) {
+        if (bounds != null) {
+            setBounds(bounds);
+        }
+        setVisible(true);
+    }
+
     private void onOkClicked() {
         Settings.INSTANCE.setText(text.getText());
+        Settings.INSTANCE.setWindowBounds(getBounds());
         dispose();
     }
 
     private void onCancelClicked() {
+        Settings.INSTANCE.setWindowBounds(getBounds());
         dispose();
     }
 
@@ -127,7 +145,7 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
         return JOptionPane.OK_OPTION;
     }
 
-    public static JFrame getInstance() {
+    public static SettingsWindow getInstance() {
         return INSTANCE.updateAndGet(window -> {
             if (window == null || window.isDisposed) {
                 window = new SettingsWindow();

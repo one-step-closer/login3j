@@ -55,6 +55,23 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         super.dispose();
     }
 
+    public void show(int x, int y) {
+        if (x != 0 || y != 0) {
+            Dimension screen = ScreenUtil.getScreenBounds(x, y);
+            if (y + getBounds().height > screen.height) {
+                y = screen.height - getBounds().height;
+            }
+            setLocation(x, y);
+        } else {
+            setLocationRelativeTo(null);
+        }
+        setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            toFront();
+            requestFocus();
+        });
+    }
+
     private void addActionItem(Action action) {
         if (action.visualizationType() == ActionVisualizationType.BUTTON) {
             addCommand(action);
@@ -94,23 +111,6 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         newLabel.setBorder(BorderFactory.createEmptyBorder(3,0,3,0));
         newLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, newLabel.getMaximumSize().height));
         pnlContent.add(newLabel);
-    }
-
-    public void show(int x, int y) {
-        if (x != 0 || y != 0) {
-            Dimension screen = ScreenUtil.getScreenBounds(x, y);
-            if (y + getBounds().height > screen.height) {
-                y = screen.height - getBounds().height;
-            }
-            setLocation(x, y);
-        } else {
-            setLocationRelativeTo(null);
-        }
-        setVisible(true);
-        SwingUtilities.invokeLater(() -> {
-            toFront();
-            requestFocus();
-        });
     }
 
     public static PopupWindow getInstance() {
