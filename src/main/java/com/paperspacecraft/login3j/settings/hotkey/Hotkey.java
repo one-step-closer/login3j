@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public abstract class Hotkey {
     private static final Pattern MOUSE_HOTKEY = Pattern.compile("^([!^+]*)([LMR])Button(\\d*)$");
     @SuppressWarnings("squid:S5998")
-    private static final Pattern KEYBOARD_HOTKEY = Pattern.compile("^([!^+]|(?:(?:Alt|Ctrl|Shift)\\s+&\\s+))+([a-zA-Z0-9.,;'`\\[\\]/\\\\])$");
+    private static final Pattern KEYBOARD_HOTKEY = Pattern.compile("^([!^+]|(?:(?:Alt|Ctrl|Shift)\\s+&\\s+))+([a-zA-Z0-9.,;'`\\[\\]/\\\\+*-])$");
     private static final Pattern SIMPLE_MODIFIERS = Pattern.compile("[!^+]+");
 
     private List<Predicate<Integer>> modifierTesters;
@@ -106,7 +106,7 @@ public abstract class Hotkey {
                 || (modifiers & NativeInputEvent.CTRL_R_MASK) == NativeInputEvent.CTRL_R_MASK;
     }
 
-    public static boolean isAlt(Integer modifiers) {
+    private static boolean isAlt(Integer modifiers) {
         return (modifiers & NativeInputEvent.ALT_L_MASK) == NativeInputEvent.ALT_L_MASK
                 || (modifiers & NativeInputEvent.ALT_R_MASK) == NativeInputEvent.ALT_R_MASK;
     }
