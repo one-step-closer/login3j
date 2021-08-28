@@ -127,4 +127,9 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
             action.accept(INSTANCE.get());
         }
     }
+
+    public static boolean isCurrentlyActive() {
+        PopupWindow window = INSTANCE.get();
+        return window != null && window.isVisible();
+    }
 }
