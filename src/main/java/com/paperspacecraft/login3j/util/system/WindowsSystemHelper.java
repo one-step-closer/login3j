@@ -65,7 +65,8 @@ class WindowsSystemHelper extends SystemHelper {
             String shellCommand = "reg ADD HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
                     + Main.APP_NAME
                     + " /t REG_SZ /d "
-                    + wrappedPath;
+                    + wrappedPath
+                    + " /f";
             executeShell(shellCommand);
         } else {
             String shellCommand = "reg DELETE HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
