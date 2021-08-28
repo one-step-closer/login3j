@@ -31,8 +31,6 @@ public abstract class SystemHelper {
         setAutostartState(!getAutostartState());
     }
 
-    public abstract boolean getNumLockState();
-
     abstract String getShellCommandTemplate();
 
     String executeShell(String command) {

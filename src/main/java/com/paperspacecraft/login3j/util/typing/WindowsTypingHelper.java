@@ -1,5 +1,6 @@
 package com.paperspacecraft.login3j.util.typing;
 
+import com.paperspacecraft.login3j.event.GlobalListener;
 import com.paperspacecraft.login3j.util.system.SystemHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -73,10 +74,10 @@ class WindowsTypingHelper extends TypingHelper {
     }
 
     private void setNumlockOn(Robot robot) {
-        numlockOn = SystemHelper.getInstance().getNumLockState();
+        numlockOn = GlobalListener.INSTANCE.getKeyMonitor().isNumLockOn();
         if (!numlockOn) {
             type(robot, VK_NUM_LOCK); // Try to turn on numlock; then set "changed" flag if it is actually on
-            numlockOn = SystemHelper.getInstance().getNumLockState();
+            numlockOn = GlobalListener.INSTANCE.getKeyMonitor().isNumLockOn();
             numlockChanged = numlockOn;
         }
     }

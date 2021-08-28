@@ -11,6 +11,8 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseInputListener;
 import com.paperspacecraft.login3j.settings.Settings;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +38,11 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
     private final AtomicInteger lastMouseModifier = new AtomicInteger(0);
     private Timer multiClickTimer;
 
+    @Getter
+    private KeyMonitor keyMonitor = new KeyMonitor(Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK));
 
     private GlobalListener() {
+        // Disabling the *jnativehook* logger
         java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
         logger.setUseParentHandlers(false);
@@ -203,7 +208,9 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent e) {
-        // Not monitored
+        if (e.getRawCode() == KeyEvent.VK_NUM_LOCK) {
+            keyMonitor.toggleNumLock();
+        }
     }
 
     @Override
@@ -227,5 +234,20 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
 
     private static void invokeLater(Consumer<GenericInputEvent> command, GenericInputEvent e) {
         SwingUtilities.invokeLater(() -> command.accept(e));
+    }
+
+
+    /* ---------------
+       Service classes
+       --------------- */
+
+    @AllArgsConstructor
+    public static class KeyMonitor {
+        @Getter
+        private boolean numLockOn;
+
+        private void toggleNumLock() {
+            numLockOn = !numLockOn;
+        }
     }
 }

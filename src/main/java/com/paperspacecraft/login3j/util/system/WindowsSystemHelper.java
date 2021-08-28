@@ -29,12 +29,6 @@ class WindowsSystemHelper extends SystemHelper {
     }
 
     @Override
-    public boolean getNumLockState() {
-        String shellResult = executeShell("powershell [console]::NumberLock").trim().toLowerCase();
-        return Boolean.parseBoolean(shellResult);
-    }
-
-    @Override
     public boolean isAutostartAvailable() {
         return StringUtils.endsWithAny(currentJavaPath.toLowerCase(), ".jar", ".exe");
     }
