@@ -23,33 +23,37 @@ public class WindowManager {
     private final List<UpdateableWindow> windows = new ArrayList<>();
     private String currentLafName;
     private int currentFontSize;
-    private final CustomStyleFactory styleFactory = new CustomStyleFactory();
+    private final CustomStyleFactory customStyleFactory = new CustomStyleFactory();
 
     public void refresh() {
 
-        String newLafName = StringUtils.EMPTY;
+        String newLafName = currentLafName;
+        boolean hasChanges = false;
         if (!StringUtils.equals(Settings.INSTANCE.getLookAndFeel(), currentLafName)) {
             try {
                 newLafName = setLookAndFeel(Settings.INSTANCE.getLookAndFeel());
+                hasChanges = !StringUtils.equals(currentLafName, newLafName);
             } catch (ApplyLookAndFeelException e) {
                 return;
             }
         }
-        if (CUSTOM_LAF.equals(newLafName) || (CUSTOM_LAF.equals(currentLafName) && newLafName.isEmpty())) {
-            // If the current theme has switched to "custom", or it _remains_ custom, we need to reset the styles
-            styleFactory.reset();
-        }
-
-        // Font size adjustment is for a non-Synth look and feel
-        if (!CUSTOM_LAF.equals(newLafName)) {
+        if (CUSTOM_LAF.equals(newLafName)) {
+            // If the current theme has switched to "custom", or it remains custom, we need to reset the styles
+            customStyleFactory.reset();
+            hasChanges = true;
+        } else {
+            // Otherwise, we just adjust the fonts
             int fontSize = Settings.INSTANCE.getFontSize();
             if (fontSize != currentFontSize && UIManager.getSystemLookAndFeelClassName().equals(newLafName)) {
                 setFontSize(fontSize);
+                hasChanges = true;
             }
         }
 
         currentLafName = newLafName;
-        windows.forEach(UpdateableWindow::update);
+        if (hasChanges) {
+            windows.forEach(UpdateableWindow::update);
+        }
     }
 
     private String setLookAndFeel(String name) throws ApplyLookAndFeelException {
@@ -76,7 +80,7 @@ public class WindowManager {
     private boolean setCustomLookAndFeel() {
         try {
             UIManager.setLookAndFeel(new SynthLookAndFeel());
-            SynthLookAndFeel.setStyleFactory(styleFactory);
+            SynthLookAndFeel.setStyleFactory(customStyleFactory);
             return true;
         } catch (UnsupportedLookAndFeelException e) {
             LOG.error("Could not apply custom look and feel. Using system defaults", e);
