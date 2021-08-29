@@ -15,12 +15,14 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.prefs.Preferences;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -30,16 +32,15 @@ public class Settings {
     private static final Logger LOG = LoggerFactory.getLogger(Main.APP_NAME);
 
     private static final String HOME_DIRECTORY = System.getProperty("user.home");
-
-    private static final String KEY_UI_SETTINGS = "public";
     private static final Path PATH_UI_SETTINGS = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "ui.ini");
-
-    private static final String KEY_PROTECTED_SETTINGS = "protected";
     private static final Path PATH_PROTECTED_SETTINGS = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "protected.bin");
-
-    private static final String KEY_PASSWORD = "password";
     private static final Path PATH_PASSWORD = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "password.bin");
 
+    private static final String PATH_DEFAULT_SETTINGS = "/settings-default.ini";
+
+    private static final String KEY_UI_SETTINGS = "public";
+    private static final String KEY_PROTECTED_SETTINGS = "protected";
+    private static final String KEY_PASSWORD = "password";
     private static final String KEY_WINDOW_BOUNDS = "windowbounds";
     private static final String WINDOW_BOUNDS_FORMAT = "%d,%d,%d,%d";
 
@@ -139,7 +140,17 @@ public class Settings {
     }
 
     public String getText() {
-        return protectedSettingsHolder.getText() + System.lineSeparator() + System.lineSeparator() + uiSettingsHolder.getText();
+        String result = protectedSettingsHolder.getText() + System.lineSeparator() + System.lineSeparator() + uiSettingsHolder.getText();
+        if (StringUtils.isNotBlank(result)) {
+            return result;
+        }
+        try {
+            URL defaultSettings = Main.class.getResource(PATH_DEFAULT_SETTINGS);
+            return IOUtils.toString(Objects.requireNonNull(defaultSettings), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOG.error("Could not read the default settings");
+        }
+        return StringUtils.EMPTY;
     }
 
     public void setText(String value) {
