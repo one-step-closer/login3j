@@ -7,6 +7,8 @@ import com.paperspacecraft.login3j.ui.PasswordDialog;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
 import com.paperspacecraft.login3j.ui.WindowManager;
 import com.paperspacecraft.login3j.util.system.SystemHelper;
+import it.sauronsoftware.junique.AlreadyLockedException;
+import it.sauronsoftware.junique.JUnique;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -30,6 +32,10 @@ public class Main {
     private static final Supplier<String> AUTOSTART_LABEL_SUPPLIER = () -> SystemHelper.getInstance().getAutostartState() ? "Remove from Autostart" : "Add to Autostart";
 
     public static void main(String[] args) {
+        if (!ensureSingleInstance()) {
+            return;
+        }
+
         Settings.INSTANCE.initializeUnprotected();
         WindowManager.INSTANCE.refresh();
 
@@ -41,6 +47,16 @@ public class Main {
         GlobalListener.INSTANCE.setEnabled(Settings.INSTANCE.isStartEnabled());
         initSystemTray(createPopupMenu());
         Settings.INSTANCE.setCallback(Main::applySettings);
+    }
+
+    private static boolean ensureSingleInstance() {
+        try {
+            JUnique.acquireLock(Main.class.getCanonicalName(), null);
+            return true;
+        } catch (AlreadyLockedException exc) {
+            LOG.warn("Another instance of {} is running. This one will exit", APP_NAME);
+        }
+        return false;
     }
 
     private static InitializationState initializeProtectedSettings() {
