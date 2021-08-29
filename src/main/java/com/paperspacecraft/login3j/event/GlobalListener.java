@@ -39,7 +39,7 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
     private Timer multiClickTimer;
 
     @Getter
-    private KeyMonitor keyMonitor = new KeyMonitor(Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK));
+    private final KeyMonitor keyMonitor = new KeyMonitor(Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK));
 
     private GlobalListener() {
         // Disabling the *jnativehook* logger
@@ -192,10 +192,14 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
 
     @Override
     public void nativeKeyTyped(NativeKeyEvent e) {
+        if (e.getRawCode() == KeyEvent.VK_NUM_LOCK) {
+            keyMonitor.toggleNumLock();
+        }
         if (e.getRawCode() == KeyEvent.VK_ESCAPE) {
             PopupWindow.ifPresent(window -> window.setVisible(false));
             return;
         }
+        
         if (!Hotkey.isModified(e.getModifiers()) || SettingsWindow.isCurrentlyActive()) {
             return;
         }
@@ -208,9 +212,7 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent e) {
-        if (e.getRawCode() == KeyEvent.VK_NUM_LOCK) {
-            keyMonitor.toggleNumLock();
-        }
+        // Not monitored
     }
 
     @Override
@@ -223,7 +225,7 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
        --------------- */
 
     private static boolean isValidMouseEvent(NativeMouseEvent e, int clickCount) {
-        if (!Hotkey.isModified(e.getModifiers()) || clickCount < 2) {
+        if (clickCount < 2) {
             return false;
         }
         if (clickCount == 2 && e.getButton() == NativeMouseEvent.BUTTON1 && !Hotkey.isModified(e.getModifiers())) {

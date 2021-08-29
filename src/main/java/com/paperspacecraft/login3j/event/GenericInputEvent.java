@@ -20,6 +20,7 @@ public class GenericInputEvent {
 
     public GenericInputEvent(NativeKeyEvent keyEvent) {
         this.keyEvent = keyEvent;
+        this.mousePoint = MouseInfo.getPointerInfo().getLocation();
     }
 
     public int getModifiers() {
