@@ -3,9 +3,9 @@ package com.paperspacecraft.login3j.settings.hotkey;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jnativehook.NativeInputEvent;
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.NativeInputEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public abstract class Hotkey {
     private static final Pattern MOUSE_HOTKEY = Pattern.compile("^([!^+]*)([LMR])Button(\\d*)$");
     @SuppressWarnings("squid:S5998")
-    private static final Pattern KEYBOARD_HOTKEY = Pattern.compile("^([!^+]|(?:(?:Alt|Ctrl|Shift)\\s+&\\s+))+([a-zA-Z0-9.,;'`\\[\\]/\\\\])$");
+    private static final Pattern KEYBOARD_HOTKEY = Pattern.compile("^([!^+]|(?:(?:Alt|Ctrl|Shift)\\s+&\\s+))+([a-zA-Z0-9.,;'`\\[\\]/\\\\+*-])$");
     private static final Pattern SIMPLE_MODIFIERS = Pattern.compile("[!^+]+");
 
     private List<Predicate<Integer>> modifierTesters;

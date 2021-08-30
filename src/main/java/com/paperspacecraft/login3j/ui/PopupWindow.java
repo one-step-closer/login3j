@@ -55,6 +55,23 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         super.dispose();
     }
 
+    public void show(int x, int y) {
+        if (x != 0 || y != 0) {
+            Dimension screen = ScreenUtil.getScreenBounds(x, y);
+            if (y + getBounds().height > screen.height) {
+                y = screen.height - getBounds().height;
+            }
+            setLocation(x, y);
+        } else {
+            setLocationRelativeTo(null);
+        }
+        setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            toFront();
+            requestFocus();
+        });
+    }
+
     private void addActionItem(Action action) {
         if (action.visualizationType() == ActionVisualizationType.BUTTON) {
             addCommand(action);
@@ -96,23 +113,6 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         pnlContent.add(newLabel);
     }
 
-    public void show(int x, int y) {
-        if (x != 0 || y != 0) {
-            Dimension screen = ScreenUtil.getScreenBounds(x, y);
-            if (y + getBounds().height > screen.height) {
-                y = screen.height - getBounds().height;
-            }
-            setLocation(x, y);
-        } else {
-            setLocationRelativeTo(null);
-        }
-        setVisible(true);
-        SwingUtilities.invokeLater(() -> {
-            toFront();
-            requestFocus();
-        });
-    }
-
     public static PopupWindow getInstance() {
         return INSTANCE.updateAndGet(window -> {
             if (window == null || window.isDisposed) {
@@ -126,5 +126,10 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         if (INSTANCE.get() != null && !INSTANCE.get().isDisposed) {
             action.accept(INSTANCE.get());
         }
+    }
+
+    public static boolean isCurrentlyActive() {
+        PopupWindow window = INSTANCE.get();
+        return window != null && window.isVisible();
     }
 }

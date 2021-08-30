@@ -12,9 +12,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public abstract class SystemHelper {
     private static final Logger LOG = LoggerFactory.getLogger(SystemHelper.class);
+
+    private static final int COMMAND_TIMEOUT_MS = 3000;
 
     private static final Map<OsType, SystemHelper> INSTANCES = Collections.synchronizedMap(new HashMap<>());
 
@@ -28,14 +31,12 @@ public abstract class SystemHelper {
         setAutostartState(!getAutostartState());
     }
 
-    public abstract boolean getNumLockState();
-
     abstract String getShellCommandTemplate();
 
     String executeShell(String command) {
         try {
             Process p = Runtime.getRuntime().exec(String.format(getShellCommandTemplate(), command));
-            p.waitFor();
+            p.waitFor(COMMAND_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             return IOUtils.toString(p.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             LOG.error("Could not execute a shell command", e);

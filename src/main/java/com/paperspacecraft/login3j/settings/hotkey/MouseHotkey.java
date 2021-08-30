@@ -3,8 +3,8 @@ package com.paperspacecraft.login3j.settings.hotkey;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 
 @Setter(value = AccessLevel.PACKAGE)
 class MouseHotkey extends Hotkey {

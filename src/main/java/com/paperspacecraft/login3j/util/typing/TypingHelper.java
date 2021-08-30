@@ -22,8 +22,9 @@ public abstract class TypingHelper {
     private boolean simpleInputMode;
 
     public void clearInput(Robot robot) {
-        TypingHelper.type(robot, KeyEvent.VK_CONTROL, KeyEvent.VK_A);
-       TypingHelper.type(robot, KeyEvent.VK_DELETE);
+        releaseControlButtons(robot);
+        type(robot, KeyEvent.VK_CONTROL, KeyEvent.VK_A);
+        type(robot, KeyEvent.VK_DELETE);
     }
 
     public abstract void type(Robot robot, String text);
@@ -84,6 +85,12 @@ public abstract class TypingHelper {
         } catch (IllegalArgumentException e) {
             LOG.warn("Exception releasing key code {}", keyCode);
         }
+    }
+
+    private static void releaseControlButtons(Robot robot) {
+        release(robot, KeyEvent.VK_CONTROL);
+        release(robot, KeyEvent.VK_ALT);
+        release(robot, KeyEvent.VK_SHIFT);
     }
 
     public static TypingHelper getInstance() {

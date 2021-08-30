@@ -7,6 +7,8 @@ import com.paperspacecraft.login3j.ui.PasswordDialog;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
 import com.paperspacecraft.login3j.ui.WindowManager;
 import com.paperspacecraft.login3j.util.system.SystemHelper;
+import it.sauronsoftware.junique.AlreadyLockedException;
+import it.sauronsoftware.junique.JUnique;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -30,6 +32,10 @@ public class Main {
     private static final Supplier<String> AUTOSTART_LABEL_SUPPLIER = () -> SystemHelper.getInstance().getAutostartState() ? "Remove from Autostart" : "Add to Autostart";
 
     public static void main(String[] args) {
+        if (!ensureSingleInstance()) {
+            return;
+        }
+
         Settings.INSTANCE.initializeUnprotected();
         WindowManager.INSTANCE.refresh();
 
@@ -38,8 +44,19 @@ public class Main {
             return;
         }
         applySettings();
+        GlobalListener.INSTANCE.setEnabled(Settings.INSTANCE.isStartEnabled());
         initSystemTray(createPopupMenu());
         Settings.INSTANCE.setCallback(Main::applySettings);
+    }
+
+    private static boolean ensureSingleInstance() {
+        try {
+            JUnique.acquireLock(Main.class.getCanonicalName(), null);
+            return true;
+        } catch (AlreadyLockedException exc) {
+            LOG.warn("Another instance of {} is running. This one will exit", APP_NAME);
+        }
+        return false;
     }
 
     private static InitializationState initializeProtectedSettings() {
@@ -63,9 +80,8 @@ public class Main {
     }
 
     private static void applySettings() {
-
-        GlobalListener.INSTANCE.setEnabled(false); // to reset listener state
-        GlobalListener.INSTANCE.setEnabled(Settings.INSTANCE.isStartEnabled());
+        // Update GlobalListener
+        GlobalListener.INSTANCE.refresh();
 
         // Update global UI
         WindowManager.INSTANCE.refresh();
@@ -92,7 +108,7 @@ public class Main {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    SettingsWindow.getInstance().setVisible(true);
+                    SettingsWindow.getInstance().show(Settings.INSTANCE.getWindowBounds());
                 }
             }
         });
@@ -108,7 +124,7 @@ public class Main {
 
         MenuItem settingsItem = new MenuItem("Settings...");
         settingsItem.setName("menu:settings");
-        settingsItem.addActionListener(e -> SettingsWindow.getInstance().setVisible(true));
+        settingsItem.addActionListener(e -> SettingsWindow.getInstance().show(Settings.INSTANCE.getWindowBounds()));
         result.add(settingsItem);
 
         MenuItem enabledItem = new MenuItem(ENABLED_LABEL_SUPPLIER.get());

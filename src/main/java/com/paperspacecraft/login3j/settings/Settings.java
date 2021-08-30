@@ -13,14 +13,17 @@ import org.jasypt.util.text.AES256TextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.prefs.Preferences;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Settings {
@@ -29,17 +32,24 @@ public class Settings {
     private static final Logger LOG = LoggerFactory.getLogger(Main.APP_NAME);
 
     private static final String HOME_DIRECTORY = System.getProperty("user.home");
+    private static final Path PATH_UI_SETTINGS = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "ui.ini");
+    private static final Path PATH_PROTECTED_SETTINGS = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "protected.bin");
+    private static final Path PATH_PASSWORD = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "password.bin");
 
-    private static final Path UI_SETTINGS_PATH = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "ui.ini");
-    private static final Path PROTECTED_SETTINGS_PATH = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "protected.bin");
-    private static final Path PASSWORD_PATH = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "password.bin");
+    private static final String PATH_DEFAULT_SETTINGS = "/settings-default.ini";
 
-    private String password;
+    private static final String KEY_UI_SETTINGS = "public";
+    private static final String KEY_PROTECTED_SETTINGS = "protected";
+    private static final String KEY_PASSWORD = "password";
+    private static final String KEY_WINDOW_BOUNDS = "windowbounds";
+    private static final String WINDOW_BOUNDS_FORMAT = "%d,%d,%d,%d";
 
-    private boolean authorized;
-
+    private final Preferences preferences = Preferences.userRoot().node(Main.APP_NAME.toLowerCase());
     private UiSettingsHolder uiSettingsHolder = new UiSettingsHolder();
     private ProtectedSettingsHolder protectedSettingsHolder = new ProtectedSettingsHolder();
+
+    private String password;
+    private boolean authorized;
 
     @Setter
     private Runnable callback;
@@ -53,20 +63,26 @@ public class Settings {
     }
 
     public void initializeUnprotected() {
-        if (!Files.exists(UI_SETTINGS_PATH)) {
+        String prefString = preferences.get(KEY_UI_SETTINGS, StringUtils.EMPTY);
+        if (StringUtils.isBlank(prefString) && !Files.exists(PATH_UI_SETTINGS)) {
             LOG.warn("UI settings not found, defaults applied");
             return;
         }
+        if (StringUtils.isNotBlank(prefString)) {
+            uiSettingsHolder = new UiSettingsHolder(prefString);
+            return;
+        }
         try {
-            String text = IOUtils.toString(UI_SETTINGS_PATH.toUri(), StandardCharsets.UTF_8);
+            String text = IOUtils.toString(PATH_UI_SETTINGS.toUri(), StandardCharsets.UTF_8);
             uiSettingsHolder = new UiSettingsHolder(text);
         } catch (IOException e) {
-            LOG.error("Could not read settings from {}", PROTECTED_SETTINGS_PATH, e);
+            LOG.error("Could not read settings from {}", PATH_PROTECTED_SETTINGS, e);
         }
     }
 
     public InitializationState initializeProtected(String password) {
-        if (!Files.exists(PROTECTED_SETTINGS_PATH)) {
+        String prefString = preferences.get(KEY_PROTECTED_SETTINGS, StringUtils.EMPTY);
+        if (StringUtils.isBlank(prefString) && !Files.exists(PATH_PROTECTED_SETTINGS)) {
             LOG.warn("Protected settings not found, defaults applied");
             return InitializationState.SUCCESS;
         }
@@ -79,12 +95,16 @@ public class Settings {
                 return InitializationState.NOT_AUTHORIZED;
             }
         }
+        if (StringUtils.isNotBlank(prefString)) {
+            protectedSettingsHolder = new ProtectedSettingsHolder(decrypt(prefString));
+            return InitializationState.SUCCESS;
+        }
         try {
-            String rawText = IOUtils.toString(PROTECTED_SETTINGS_PATH.toUri(), StandardCharsets.UTF_8);
+            String rawText = IOUtils.toString(PATH_PROTECTED_SETTINGS.toUri(), StandardCharsets.UTF_8);
             protectedSettingsHolder = new ProtectedSettingsHolder(decrypt(rawText));
             return InitializationState.SUCCESS;
         } catch (IOException e) {
-            LOG.error("Could not read settings from {}", PROTECTED_SETTINGS_PATH, e);
+            LOG.error("Could not read settings from {}", PATH_PROTECTED_SETTINGS, e);
         }
         return InitializationState.ERROR;
     }
@@ -120,50 +140,63 @@ public class Settings {
     }
 
     public String getText() {
-        return protectedSettingsHolder.getText() + System.lineSeparator() + System.lineSeparator() + uiSettingsHolder.getText();
+        String result = protectedSettingsHolder.getText() + System.lineSeparator() + System.lineSeparator() + uiSettingsHolder.getText();
+        if (StringUtils.isNotBlank(result)) {
+            return result;
+        }
+        try {
+            URL defaultSettings = Main.class.getResource(PATH_DEFAULT_SETTINGS);
+            return IOUtils.toString(Objects.requireNonNull(defaultSettings), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOG.error("Could not read the default settings");
+        }
+        return StringUtils.EMPTY;
     }
 
     public void setText(String value) {
         String uiText = IniUtil.getTextForSection(value, "UI");
+        preferences.put(KEY_UI_SETTINGS, uiText);
+        uiSettingsHolder = new UiSettingsHolder(uiText);
+
         String protectedText = IniUtil.getTextExceptSection(value, "UI");
-        if (!ensureUserDirectory()) {
-            return;
-        }
-        try (
-                OutputStream uiOutput = Files.newOutputStream(UI_SETTINGS_PATH, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-                OutputStream protectedOutput = Files.newOutputStream(PROTECTED_SETTINGS_PATH, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-        ) {
-            IOUtils.write(uiText, uiOutput, StandardCharsets.UTF_8);
-            uiSettingsHolder = new UiSettingsHolder(uiText);
-            IOUtils.write(encrypt(protectedText), protectedOutput, StandardCharsets.UTF_8);
-            protectedSettingsHolder = new ProtectedSettingsHolder(protectedText);
-            if (callback != null) {
-                callback.run();
-            }
-        } catch (IOException e) {
-            LOG.error("Could not store settings to {}", PROTECTED_SETTINGS_PATH, e);
+        preferences.put(KEY_PROTECTED_SETTINGS, encrypt(protectedText));
+        protectedSettingsHolder = new ProtectedSettingsHolder(protectedText);
+
+        if (callback != null) {
+            callback.run();
         }
     }
 
     public void setText(String value, String password) {
         if (StringUtils.isEmpty(password) && StringUtils.isNotEmpty(this.password)) {
-            try {
-                Files.delete(PASSWORD_PATH);
-            } catch (IOException e) {
-                LOG.error("Could not discard password file {}", PASSWORD_PATH, e);
+            preferences.remove(KEY_PASSWORD);
+            if (Files.exists(PATH_PASSWORD)) {
+                try {
+                    Files.delete(PATH_PASSWORD);
+                } catch (IOException e) {
+                    LOG.error("Could not discard password file {}", PATH_PASSWORD, e);
+                }
             }
             this.password = StringUtils.EMPTY;
-        } else if (StringUtils.isNotEmpty(password) && ensureUserDirectory()) {
+        } else if (StringUtils.isNotEmpty(password)) {
             StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
             String encryptedPassword = passwordEncryptor.encryptPassword(password);
-            try (OutputStream output = Files.newOutputStream(PASSWORD_PATH, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                IOUtils.write(encryptedPassword, output, StandardCharsets.UTF_8);
-                this.password = password;
-            } catch (IOException e) {
-                LOG.error("Could not store password to {}", PROTECTED_SETTINGS_PATH, e);
-            }
+            preferences.put(KEY_PASSWORD, encryptedPassword);
+            this.password = password;
         }
         setText(value);
+    }
+
+    public Rectangle getWindowBounds() {
+        String[] parts =  preferences.get(KEY_WINDOW_BOUNDS, StringUtils.EMPTY).split(",");
+        if (parts.length != 4 || Arrays.stream(parts).anyMatch(part -> !StringUtils.isNumeric(part))) {
+            return null;
+        }
+        return new Rectangle(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]));
+    }
+
+    public void setWindowBounds(Rectangle value) {
+        preferences.put(KEY_WINDOW_BOUNDS, String.format(WINDOW_BOUNDS_FORMAT, value.x, value.y, value.width, value.height));
     }
 
     /* ----------
@@ -171,19 +204,21 @@ public class Settings {
        ---------- */
 
     public boolean isPasswordProtected() {
-        return Files.exists(PASSWORD_PATH);
+        return StringUtils.isNotBlank(preferences.get(KEY_PASSWORD, StringUtils.EMPTY)) || Files.exists(PATH_PASSWORD);
     }
 
     public boolean validatePassword(String password) {
-        String encryptedPassword;
-        try {
-            encryptedPassword = IOUtils.toString(PASSWORD_PATH.toUri(), StandardCharsets.UTF_8);
-            StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
-            return passwordEncryptor.checkPassword(password, encryptedPassword);
-        } catch (IOException e) {
-            LOG.error("Could not read password value from {}", PASSWORD_PATH, e);
+        String encryptedPassword = preferences.get(KEY_PASSWORD, StringUtils.EMPTY);
+        if (StringUtils.isBlank(encryptedPassword)) {
+            try {
+                encryptedPassword = IOUtils.toString(PATH_PASSWORD.toUri(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                LOG.error("Could not read password value from {}", PATH_PASSWORD, e);
+                return false;
+            }
         }
-        return false;
+        StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
+        return passwordEncryptor.checkPassword(password, encryptedPassword);
     }
 
     private String decrypt(String value) {
@@ -202,22 +237,5 @@ public class Settings {
         AES256TextEncryptor encryptor = new AES256TextEncryptor();
         encryptor.setPassword(password);
         return encryptor.encrypt(value);
-    }
-
-    /* --------
-       IO utils
-       -------- */
-
-    private static boolean ensureUserDirectory() {
-        if (Files.exists(PROTECTED_SETTINGS_PATH.getParent())) {
-            return true;
-        }
-        try {
-            Files.createDirectories(PROTECTED_SETTINGS_PATH.getParent());
-            return true;
-        } catch (IOException e) {
-            LOG.error("Could not create directory for {}", PROTECTED_SETTINGS_PATH, e);
-        }
-        return false;
     }
 }

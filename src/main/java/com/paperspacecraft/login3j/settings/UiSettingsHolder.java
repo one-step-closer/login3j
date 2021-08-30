@@ -23,7 +23,7 @@ class UiSettingsHolder {
     private static final int DEFAULT_FONT_SIZE = 13;
     private static final Map<String, String> DEFAULT_CUSTOM_COLORS;
     static {
-        DEFAULT_CUSTOM_COLORS = new HashMap<>();
+        DEFAULT_CUSTOM_COLORS = new HashMap<>(20);
         DEFAULT_CUSTOM_COLORS.put("background", "#F0F0F0");
         DEFAULT_CUSTOM_COLORS.put("foreground", "#000000");
 

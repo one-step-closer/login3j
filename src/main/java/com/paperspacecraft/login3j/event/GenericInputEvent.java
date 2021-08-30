@@ -1,7 +1,7 @@
 package com.paperspacecraft.login3j.event;
 
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 
 import java.awt.*;
 
@@ -20,6 +20,7 @@ public class GenericInputEvent {
 
     public GenericInputEvent(NativeKeyEvent keyEvent) {
         this.keyEvent = keyEvent;
+        this.mousePoint = MouseInfo.getPointerInfo().getLocation();
     }
 
     public int getModifiers() {

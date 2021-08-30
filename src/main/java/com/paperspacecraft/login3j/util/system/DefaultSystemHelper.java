@@ -17,11 +17,6 @@ class DefaultSystemHelper extends SystemHelper {
     }
 
     @Override
-    public boolean getNumLockState() {
-        return false;
-    }
-
-    @Override
     String getShellCommandTemplate() {
         return "%s";
     }

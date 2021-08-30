@@ -29,12 +29,6 @@ class WindowsSystemHelper extends SystemHelper {
     }
 
     @Override
-    public boolean getNumLockState() {
-        String shellResult = executeShell("powershell [console]::NumberLock").trim().toLowerCase();
-        return Boolean.parseBoolean(shellResult);
-    }
-
-    @Override
     public boolean isAutostartAvailable() {
         return StringUtils.endsWithAny(currentJavaPath.toLowerCase(), ".jar", ".exe");
     }
@@ -65,7 +59,8 @@ class WindowsSystemHelper extends SystemHelper {
             String shellCommand = "reg ADD HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
                     + Main.APP_NAME
                     + " /t REG_SZ /d "
-                    + wrappedPath;
+                    + wrappedPath
+                    + " /f";
             executeShell(shellCommand);
         } else {
             String shellCommand = "reg DELETE HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /v "
