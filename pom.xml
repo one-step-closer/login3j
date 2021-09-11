@@ -18,6 +18,28 @@
     </properties>
 
     <dependencies>
+        <!-- System interop -->
+        <dependency>
+            <groupId>com.github.kwhat</groupId>
+            <artifactId>jnativehook</artifactId>
+            <version>2.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform</artifactId>
+            <version>5.8.0</version>
+        </dependency>
+        <!-- UI -->
+        <dependency>
+            <groupId>com.dorkbox</groupId>
+            <artifactId>SystemTray</artifactId>
+            <version>4.1</version>
+        </dependency>
         <!-- Utilities -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -33,11 +55,6 @@
             <groupId>org.jasypt</groupId>
             <artifactId>jasypt</artifactId>
             <version>1.9.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.kwhat</groupId>
-            <artifactId>jnativehook</artifactId>
-            <version>2.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>it.sauronsoftware</groupId>
@@ -67,12 +84,6 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
             <scope>runtime</scope>
-        </dependency>
-        <!-- Build -->
-        <dependency>
-            <groupId>com.akathist.maven.plugins.launch4j</groupId>
-            <artifactId>launch4j-maven-plugin</artifactId>
-            <version>2.1.2</version>
         </dependency>
     </dependencies>
 
@@ -114,6 +125,7 @@
                                 ${project.build.directory}/lib/
                             </outputDirectory>
                             <useBaseVersion>false</useBaseVersion>
+                            <excludeArtifactIds>launch4j-maven-plugin</excludeArtifactIds>
                         </configuration>
                     </execution>
                 </executions>
@@ -165,7 +177,7 @@
 
     <profiles>
         <profile>
-            <id>build-win</id>
+            <id>prepare-for-deployment</id>
             <build>
                 <plugins>
                     <plugin>
@@ -246,7 +258,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                 </plugins>
             </build>
         </profile>
