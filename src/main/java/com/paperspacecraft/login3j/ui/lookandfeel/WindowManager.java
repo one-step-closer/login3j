@@ -1,6 +1,7 @@
-package com.paperspacecraft.login3j.ui;
+package com.paperspacecraft.login3j.ui.lookandfeel;
 
 import com.paperspacecraft.login3j.settings.Settings;
+import com.paperspacecraft.login3j.ui.UpdateableWindow;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -106,11 +107,11 @@ public class WindowManager {
         }
     }
 
-    void register(UpdateableWindow window) {
+    public void register(UpdateableWindow window) {
         windows.add(window);
     }
 
-    void unregister(UpdateableWindow window) {
+    public void unregister(UpdateableWindow window) {
         windows.remove(window);
     }
 

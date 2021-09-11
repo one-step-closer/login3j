@@ -2,6 +2,7 @@ package com.paperspacecraft.login3j.ui;
 
 import com.paperspacecraft.login3j.Main;
 import com.paperspacecraft.login3j.settings.Settings;
+import com.paperspacecraft.login3j.ui.lookandfeel.WindowManager;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;

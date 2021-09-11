@@ -4,6 +4,7 @@ import com.paperspacecraft.login3j.event.GenericInputEvent;
 import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.settings.action.Action;
 import com.paperspacecraft.login3j.settings.action.ActionVisualizationType;
+import com.paperspacecraft.login3j.ui.lookandfeel.WindowManager;
 import com.paperspacecraft.login3j.util.ScreenUtil;
 
 import javax.swing.*;
