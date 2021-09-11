@@ -17,6 +17,7 @@ class UiSettingsHolder {
 
     private static final boolean DEFAULT_START_ENABLED = true;
     private static final boolean DEFAULT_SHOW_TOOLTIPS = false;
+    private static final boolean DEFAULT_USE_SYSTEM_TRAY = false;
     private static final int DEFAULT_KEYSTROKE_DELAY = 10;
 
     private static final String DEFAULT_LOOK_AND_FEEL = UIManager.getSystemLookAndFeelClassName();
@@ -56,6 +57,7 @@ class UiSettingsHolder {
     private Integer keystrokeDelay = DEFAULT_KEYSTROKE_DELAY;
     private String lookAndFeel = DEFAULT_LOOK_AND_FEEL;
     private Integer fontSize = DEFAULT_FONT_SIZE;
+    private boolean useSystemTray = DEFAULT_USE_SYSTEM_TRAY;
     private final Map<String, String> customColors = new HashMap<>(DEFAULT_CUSTOM_COLORS);
 
     UiSettingsHolder(String text) {
@@ -68,6 +70,7 @@ class UiSettingsHolder {
         keystrokeDelay = getIntValue("delay", keystrokeDelay);
         startEnabled = getBooleanValue("startEnabled", startEnabled);
         showTooltips = getBooleanValue("showTooltips", showTooltips);
+        useSystemTray = getBooleanValue("useSystemTray", useSystemTray);
         DEFAULT_CUSTOM_COLORS.keySet().forEach(key -> {
             String rawValue = IniUtil.getProperty(getText(), key);
             if (rawValue != null && HEX_COLOR.matcher(rawValue).matches()) {

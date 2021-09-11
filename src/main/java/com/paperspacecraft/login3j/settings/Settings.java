@@ -135,6 +135,10 @@ public class Settings {
 
     public boolean getShowTooltips() { return uiSettingsHolder.getShowTooltips(); }
 
+    public boolean isUseSystemTray() {
+        return uiSettingsHolder.isUseSystemTray();
+    }
+
     public String getCustomColor(String key) {
         return uiSettingsHolder.getCustomColors().getOrDefault(key, StringUtils.EMPTY);
     }
