@@ -22,7 +22,7 @@ public abstract class TrayMenu {
     static final String APP_ICON = Main.APP_ICON;
     static final String APP_ICON_DISABLED = "/login3j-disabled.png";
 
-    static final String MENU_LABEL_ADD_AUTOSTART = "Add to Autostart";
+    static final String MENU_LABEL_ADD_AUTOSTART = "Autostart";
     static final String MENU_LABEL_ENABLE = "Enable";
 
     static final String MENU_ID_AUTOSTART = "menu:autostart";
