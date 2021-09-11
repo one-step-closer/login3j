@@ -21,15 +21,25 @@ public abstract class SystemHelper {
 
     private static final Map<OsType, SystemHelper> INSTANCES = Collections.synchronizedMap(new HashMap<>());
 
+    /* --------------
+       Public methods
+       -------------- */
+
     public abstract boolean isAutostartAvailable();
 
     public abstract boolean getAutostartState();
 
-    public abstract void setAutostartState(boolean value);
-
     public void toggleAutostartState() {
         setAutostartState(!getAutostartState());
     }
+
+    abstract void setAutostartState(boolean value);
+
+    public abstract String getActiveWindowText();
+
+    /* ---------------
+       Service methods
+       --------------- */
 
     abstract String getShellCommandTemplate();
 

@@ -1,6 +1,9 @@
 package com.paperspacecraft.login3j.util.system;
 
 import com.paperspacecraft.login3j.Main;
+import com.sun.jna.Native;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,6 +13,7 @@ import java.io.StringReader;
 import java.net.URISyntaxException;
 
 class WindowsSystemHelper extends SystemHelper {
+    private static final int MAX_WINDOW_TITLE_LENGTH = 1024;
 
     private String currentJavaPath;
 
@@ -51,7 +55,7 @@ class WindowsSystemHelper extends SystemHelper {
     }
 
     @Override
-    public void setAutostartState(boolean value) {
+    void setAutostartState(boolean value) {
         if (value) {
             String wrappedPath = StringUtils.endsWithIgnoreCase(currentJavaPath, ".jar")
                     ? "\"java -jar \\\"" + currentJavaPath + "\\\"\""
@@ -67,5 +71,16 @@ class WindowsSystemHelper extends SystemHelper {
                     + Main.APP_NAME + " /f";
             executeShell(shellCommand);
         }
+    }
+
+    @Override
+    public String getActiveWindowText() {
+        char[] buffer = new char[MAX_WINDOW_TITLE_LENGTH];
+        WinDef.HWND hwnd = User32.INSTANCE.GetForegroundWindow();
+        User32.INSTANCE.GetClassName(hwnd, buffer, MAX_WINDOW_TITLE_LENGTH);
+        String className = Native.toString(buffer);
+        User32.INSTANCE.GetWindowText(hwnd, buffer, MAX_WINDOW_TITLE_LENGTH);
+        String title = Native.toString(buffer);
+        return String.format("[%s] %s", className, title);
     }
 }

@@ -1,5 +1,7 @@
 package com.paperspacecraft.login3j.util.system;
 
+import org.apache.commons.lang3.StringUtils;
+
 class DefaultSystemHelper extends SystemHelper {
     @Override
     public boolean isAutostartAvailable() {
@@ -12,8 +14,13 @@ class DefaultSystemHelper extends SystemHelper {
     }
 
     @Override
-    public void setAutostartState(boolean value) {
+    void setAutostartState(boolean value) {
         // Not implemented
+    }
+
+    @Override
+    public String getActiveWindowText() {
+        return StringUtils.EMPTY;
     }
 
     @Override
