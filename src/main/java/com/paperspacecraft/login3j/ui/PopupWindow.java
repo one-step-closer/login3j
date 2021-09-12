@@ -1,6 +1,6 @@
 package com.paperspacecraft.login3j.ui;
 
-import com.paperspacecraft.login3j.event.GenericInputEvent;
+import com.paperspacecraft.login3j.event.InputEvent;
 import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.settings.action.Action;
 import com.paperspacecraft.login3j.settings.action.ActionVisualizationType;
@@ -99,7 +99,7 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         }
         button.addMouseListener(new ButtonMouseAdapter(() -> {
             dispose();
-            action.getCommand().accept(new GenericInputEvent());
+            action.getCommand().accept(InputEvent.newInstance());
         }));
         pnlContent.add(button);
     }

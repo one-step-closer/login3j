@@ -1,6 +1,6 @@
 package com.paperspacecraft.login3j.util;
 
-import com.paperspacecraft.login3j.event.GenericInputEvent;
+import com.paperspacecraft.login3j.event.InputEvent;
 import com.paperspacecraft.login3j.settings.Command;
 import com.paperspacecraft.login3j.util.typing.TypingHelper;
 import lombok.experimental.UtilityClass;
@@ -48,7 +48,7 @@ public class CommandUtil {
 
     private static final Pattern COMMAND_PATTERN = Pattern.compile("\\{\\w+}");
 
-    public static Consumer<GenericInputEvent> getCommand(String text) {
+    public static Consumer<InputEvent> getCommand(String text) {
         if (StringUtils.isEmpty(text)) {
             return null;
         }
@@ -58,11 +58,11 @@ public class CommandUtil {
                 .map(chunk -> COMMAND_PATTERN.matcher(chunk).find() ? " " : chunk)
                 .collect(Collectors.joining())
                 .trim();
-        Consumer<GenericInputEvent> internalAction = getInternalCommandAction(chunks);
+        Consumer<InputEvent> internalAction = getInternalCommandAction(chunks);
         return new Command(commandText, internalAction);
     }
 
-    private static Consumer<GenericInputEvent> getInternalCommandAction(List<String> chunks) {
+    private static Consumer<InputEvent> getInternalCommandAction(List<String> chunks) {
         return event -> {
             Robot robot;
             try {

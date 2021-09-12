@@ -1,6 +1,6 @@
 package com.paperspacecraft.login3j.settings.action;
 
-import com.paperspacecraft.login3j.event.GenericInputEvent;
+import com.paperspacecraft.login3j.event.InputEvent;
 import com.paperspacecraft.login3j.settings.hotkey.Hotkey;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ class ActionLabel implements Action {
     }
 
     @Override
-    public Consumer<GenericInputEvent> getCommand() {
+    public Consumer<InputEvent> getCommand() {
         return null;
     }
 }
