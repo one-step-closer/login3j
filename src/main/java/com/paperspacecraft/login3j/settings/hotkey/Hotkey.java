@@ -1,11 +1,11 @@
 package com.paperspacecraft.login3j.settings.hotkey;
 
+import com.github.kwhat.jnativehook.NativeInputEvent;
+import com.paperspacecraft.login3j.event.InputEvent;
+import com.paperspacecraft.login3j.event.InputEventType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import com.github.kwhat.jnativehook.NativeInputEvent;
-import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
-import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +24,11 @@ public abstract class Hotkey {
     @Getter(value = AccessLevel.PACKAGE)
     private String modifierString;
 
-    public abstract boolean isKeyboard();
+    public abstract InputEventType getEventType();
 
-    public abstract boolean isMouse();
+    public abstract boolean matches(InputEvent e);
 
-    public abstract boolean matches(NativeKeyEvent e);
-
-    public abstract boolean matches(NativeMouseEvent e, int count);
+    public abstract boolean matches(InputEvent e, int count);
 
     boolean matchesModifiers(int targetModifiers) {
         return modifierTesters == null || modifierTesters.stream().allMatch(tester -> tester.test(targetModifiers));
@@ -115,5 +113,4 @@ public abstract class Hotkey {
         return (modifiers & NativeInputEvent.SHIFT_L_MASK) == NativeInputEvent.SHIFT_L_MASK
                 || (modifiers & NativeInputEvent.SHIFT_R_MASK) == NativeInputEvent.SHIFT_R_MASK;
     }
-
 }

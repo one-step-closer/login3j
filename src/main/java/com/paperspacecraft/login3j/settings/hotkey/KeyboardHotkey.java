@@ -1,9 +1,9 @@
 package com.paperspacecraft.login3j.settings.hotkey;
 
+import com.paperspacecraft.login3j.event.InputEvent;
+import com.paperspacecraft.login3j.event.InputEventType;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
-import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,22 +37,19 @@ class KeyboardHotkey extends Hotkey {
     }
 
     @Override
-    public boolean isKeyboard() {
-        return true;
+    public InputEventType getEventType() {
+        return InputEventType.KEYBOARD;
     }
 
     @Override
-    public boolean isMouse() {
-        return false;
+    public boolean matches(InputEvent e) {
+        return e.getType() == InputEventType.KEYBOARD
+                && matchesModifiers(e.getModifiers())
+                && ArrayUtils.contains(code, e.getKeyCode());
     }
 
     @Override
-    public boolean matches(NativeKeyEvent e) {
-        return matchesModifiers(e.getModifiers()) && ArrayUtils.contains(code, e.getRawCode());
-    }
-
-    @Override
-    public boolean matches(NativeMouseEvent e, int count) {
+    public boolean matches(InputEvent e, int count) {
         return false;
     }
 

@@ -1,20 +1,12 @@
 package com.paperspacecraft.login3j.event;
 
+import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.settings.action.Action;
 import com.paperspacecraft.login3j.settings.hotkey.Hotkey;
 import com.paperspacecraft.login3j.ui.PopupWindow;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
-import com.github.kwhat.jnativehook.GlobalScreen;
-import com.github.kwhat.jnativehook.NativeHookException;
-import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
-import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
-import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
-import com.github.kwhat.jnativehook.mouse.NativeMouseInputListener;
-import com.paperspacecraft.login3j.settings.Settings;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,15 +14,11 @@ import java.awt.event.KeyEvent;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
-public class GlobalListener implements NativeKeyListener, NativeMouseInputListener {
+public class GlobalListener {
     public static final GlobalListener INSTANCE = new GlobalListener();
 
-    private static final Logger LOG = LoggerFactory.getLogger(GlobalListener.class);
-
     private boolean enabled;
-    private boolean hasBeenEnabledBefore;
     private boolean listenersInstalled;
 
     private final AtomicInteger mouseCount = new AtomicInteger(0);
@@ -38,14 +26,16 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
     private final AtomicInteger lastMouseModifier = new AtomicInteger(0);
     private Timer multiClickTimer;
 
+    private final NativeEventProvider eventProvider;
+
     @Getter
     private final KeyMonitor keyMonitor = new KeyMonitor(Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK));
 
     private GlobalListener() {
-        // Disabling the *jnativehook* logger
-        java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
-        logger.setLevel(Level.OFF);
-        logger.setUseParentHandlers(false);
+        eventProvider = new DefaultNativeEventProvider();
+        eventProvider.setMouseClickCallback(this::onMouseClicked);
+        eventProvider.setMouseDownCallback(this::onMouseDown);
+        eventProvider.setKeyTypedCallback(this::onKeyTyped);
     }
 
     /* ------------------
@@ -65,47 +55,31 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
     }
 
     private void enable() {
+        enabled = enabled || eventProvider.enable();
         if (enabled) {
-            return;
-        }
-        if (hasBeenEnabledBefore) {
-            // Needed for 2.2-SNAPSHOT because after disabling, eventDispatcher is not voided but is in the shutdown state
-            GlobalScreen.setEventDispatcher(null);
-        }
-        try {
-            GlobalScreen.registerNativeHook();
-            enabled = true;
-            hasBeenEnabledBefore = true;
             refresh();
-        } catch (NativeHookException e) {
-            LOG.error("Could not register global listener hook", e);
         }
     }
 
     private void disable() {
-        if (!enabled) {
+        if (!enabled || !eventProvider.disable()) {
             return;
         }
-        try {
-            GlobalScreen.unregisterNativeHook();
-            enabled = false;
-        } catch (NativeHookException e) {
-            LOG.error("Could not unregister global listener hook", e);
-        }
+        enabled = false;
     }
 
     public void refresh() {
-        GlobalScreen.removeNativeKeyListener(this);
+        eventProvider.stopKeyListener();
         boolean hasKeyboardHotkeys = Settings.INSTANCE.getActions()
                 .stream()
                 .map(Action::getHotkey)
                 .filter(Objects::nonNull)
-                .anyMatch(Hotkey::isKeyboard);
+                .anyMatch(hotkey -> hotkey.getEventType() == InputEventType.KEYBOARD);
         if (hasKeyboardHotkeys) {
-            GlobalScreen.addNativeKeyListener(this);
+            eventProvider.startKeyListener();
         }
 
-        GlobalScreen.removeNativeMouseListener(this);
+        eventProvider.stopMouseListener();
         if (multiClickTimer != null) {
             multiClickTimer.stop();
         }
@@ -113,9 +87,9 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
                 .stream()
                 .map(com.paperspacecraft.login3j.settings.action.Action::getHotkey)
                 .filter(Objects::nonNull)
-                .anyMatch(Hotkey::isMouse);
+                .anyMatch(hotkey -> hotkey.getEventType() == InputEventType.MOUSE);
         if (hasMouseHotkeys) {
-            GlobalScreen.addNativeMouseListener(this);
+            eventProvider.startMouseListener();
             multiClickTimer = new Timer(
                     (int) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval"),
                     e -> clearMouseCounters());
@@ -135,15 +109,14 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
        Mouse event hooks
        ----------------- */
 
-    @Override
-    public void nativeMouseClicked(NativeMouseEvent e) {
-        boolean buttonChanged = lastMouseButton.get() != 0 && lastMouseButton.get() != e.getButton();
+    private void onMouseClicked(MouseEvent e) {
+        boolean buttonChanged = lastMouseButton.get() != 0 && lastMouseButton.get() != e.getMouseButton();
         boolean modifierChanged = lastMouseModifier.get() != 0 && lastMouseModifier.get() != e.getModifiers();
         if (buttonChanged || modifierChanged) {
             clearMouseCounters();
         }
         lastMouseModifier.set(e.getModifiers());
-        lastMouseButton.set(e.getButton());
+        lastMouseButton.set(e.getMouseButton());
         int atomicClickCount = mouseCount.incrementAndGet();
         if (multiClickTimer != null) {
             multiClickTimer.restart();
@@ -155,11 +128,10 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
                 .stream()
                 .filter(action -> action.getHotkey() != null && action.getCommand() != null)
                 .filter(action -> action.getHotkey().matches(e, atomicClickCount))
-                .forEach(action -> invokeLater(action.getCommand(), new GenericInputEvent(e)));
+                .forEach(action -> invokeLater(action.getCommand(), e));
     }
 
-    @Override
-    public void nativeMousePressed(NativeMouseEvent e) {
+    private void onMouseDown(MouseEvent e) {
         PopupWindow.ifPresent(window -> {
             if (!window.isVisible()) {
                 return;
@@ -171,31 +143,15 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
         });
     }
 
-    @Override
-    public void nativeMouseReleased(NativeMouseEvent e) {
-        // Not monitored
-    }
-
-    @Override
-    public void nativeMouseMoved(NativeMouseEvent e) {
-        // Not monitored
-    }
-
-    @Override
-    public void nativeMouseDragged(NativeMouseEvent e) {
-        // Not monitored
-    }
-
     /* --------------------
        Keyboard event hooks
        -------------------- */
 
-    @Override
-    public void nativeKeyTyped(NativeKeyEvent e) {
-        if (e.getRawCode() == KeyEvent.VK_NUM_LOCK) {
+    public void onKeyTyped(KeyboardEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_NUM_LOCK) {
             keyMonitor.toggleNumLock();
         }
-        if (e.getRawCode() == KeyEvent.VK_ESCAPE) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             PopupWindow.ifPresent(window -> window.setVisible(false));
             return;
         }
@@ -207,34 +163,24 @@ public class GlobalListener implements NativeKeyListener, NativeMouseInputListen
                 .stream()
                 .filter(action -> action.getHotkey() != null && action.getCommand() != null)
                 .filter(action -> action.getHotkey().matches(e))
-                .forEach(action -> invokeLater(action.getCommand(), new GenericInputEvent(e)));
-    }
-
-    @Override
-    public void nativeKeyPressed(NativeKeyEvent e) {
-        // Not monitored
-    }
-
-    @Override
-    public void nativeKeyReleased(NativeKeyEvent e) {
-        // Not monitored
+                .forEach(action -> invokeLater(action.getCommand(), e));
     }
 
     /* ---------------
        Utility methods
        --------------- */
 
-    private static boolean isValidMouseEvent(NativeMouseEvent e, int clickCount) {
+    private static boolean isValidMouseEvent(InputEvent e, int clickCount) {
         if (clickCount < 2) {
             return false;
         }
-        if (clickCount == 2 && e.getButton() == NativeMouseEvent.BUTTON1 && !Hotkey.isModified(e.getModifiers())) {
+        if (clickCount == 2 && e.getMouseButton() == InputEvent.MOUSE_BUTTON_LEFT && !Hotkey.isModified(e.getModifiers())) {
             return false;
         }
         return !SettingsWindow.isCurrentlyActive() && !PopupWindow.isCurrentlyActive();
     }
 
-    private static void invokeLater(Consumer<GenericInputEvent> command, GenericInputEvent e) {
+    private static void invokeLater(Consumer<InputEvent> command, InputEvent e) {
         SwingUtilities.invokeLater(() -> command.accept(e));
     }
 

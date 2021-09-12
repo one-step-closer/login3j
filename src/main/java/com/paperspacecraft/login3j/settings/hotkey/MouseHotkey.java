@@ -1,10 +1,10 @@
 package com.paperspacecraft.login3j.settings.hotkey;
 
+import com.paperspacecraft.login3j.event.InputEvent;
+import com.paperspacecraft.login3j.event.InputEventType;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
-import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 
 @Setter(value = AccessLevel.PACKAGE)
 class MouseHotkey extends Hotkey {
@@ -16,11 +16,11 @@ class MouseHotkey extends Hotkey {
     void setButton(String code) {
         this.code = code;
         if ("L".equals(code)) {
-            button = NativeMouseEvent.BUTTON1;
+            button = InputEvent.MOUSE_BUTTON_LEFT;
         } else if ("M".equals(code)) {
-            button = NativeMouseEvent.BUTTON3;
+            button = InputEvent.MOUSE_BUTTON_MIDDLE;
         } else if ("R".equals(code)) {
-            button = NativeMouseEvent.BUTTON2;
+            button = InputEvent.MOUSE_BUTTON_RIGHT;
         }
     }
 
@@ -31,23 +31,19 @@ class MouseHotkey extends Hotkey {
     }
 
     @Override
-    public boolean isKeyboard() {
+    public InputEventType getEventType() {
+        return InputEventType.MOUSE;
+    }
+
+    @Override
+    public boolean matches(InputEvent e) {
         return false;
     }
 
     @Override
-    public boolean isMouse() {
-        return true;
-    }
-
-    @Override
-    public boolean matches(NativeKeyEvent e) {
-        return false;
-    }
-
-    @Override
-    public boolean matches(NativeMouseEvent e, int count) {
-        return e.getButton() == button
+    public boolean matches(InputEvent e, int count) {
+        return  e.getType() == InputEventType.MOUSE
+                && e.getMouseButton() == button
                 && (matchesModifiers(e.getModifiers()))
                 && count == this.count;
     }
