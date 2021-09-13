@@ -25,11 +25,11 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
             @Override
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
-                Settings.INSTANCE.setWindowBounds(getBounds());
+                Settings.getInstance().setWindowBounds(getBounds());
             }
         });
 
-        text = new JournaledTextArea(Settings.INSTANCE.getText());
+        text = new JournaledTextArea(Settings.getInstance().getText());
         text.setOpaque(true);
         text.setMargin(new Insets(5, 5, 5, 5));
 
@@ -71,12 +71,12 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
         setLocationRelativeTo(null);
         setIconImage(Toolkit.getDefaultToolkit().getImage(SettingsWindow.class.getResource(Main.APP_ICON)));
         pack();
-        WindowManager.INSTANCE.register(this);
+        WindowManager.getInstance().register(this);
     }
 
     @Override
     public void dispose() {
-        WindowManager.INSTANCE.unregister(this);
+        WindowManager.getInstance().unregister(this);
         super.dispose();
         isDisposed = true;
     }
@@ -95,13 +95,13 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
     }
 
     private void onOkClicked() {
-        Settings.INSTANCE.setWindowBounds(getBounds());
-        Settings.INSTANCE.setText(text.getText());
+        Settings.getInstance().setWindowBounds(getBounds());
+        Settings.getInstance().setText(text.getText());
         dispose();
     }
 
     private void onCancelClicked() {
-        Settings.INSTANCE.setWindowBounds(getBounds());
+        Settings.getInstance().setWindowBounds(getBounds());
         dispose();
     }
 
@@ -112,10 +112,10 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
     }
 
     private int doPasswordWorkflow() {
-        List<String> input = PasswordRepeatDialog.show(this, Settings.INSTANCE.isPasswordProtected());
+        List<String> input = PasswordRepeatDialog.show(this, Settings.getInstance().isPasswordProtected());
         if (input.isEmpty()) {
             return JOptionPane.CANCEL_OPTION;
-        } else if (input.size() > 2 && !Settings.INSTANCE.validatePassword(input.get(0))) {
+        } else if (input.size() > 2 && !Settings.getInstance().validatePassword(input.get(0))) {
             JOptionPane.showMessageDialog(
                     this,
                     "Wrong current password",
@@ -136,13 +136,13 @@ public class SettingsWindow extends JFrame implements UpdateableWindow {
                     "Discard password?",
                     Main.APP_NAME,
                     JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                Settings.INSTANCE.setText(text.getText(), null);
+                Settings.getInstance().setText(text.getText(), null);
                 return JOptionPane.OK_OPTION;
             } else {
                 return JOptionPane.CANCEL_OPTION;
             }
         }
-        Settings.INSTANCE.setText(text.getText(), input.get(input.size() - 1));
+        Settings.getInstance().setText(text.getText(), input.get(input.size() - 1));
         return JOptionPane.OK_OPTION;
     }
 

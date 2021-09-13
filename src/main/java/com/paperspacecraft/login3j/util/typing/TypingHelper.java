@@ -56,7 +56,7 @@ public abstract class TypingHelper {
         if (ArrayUtils.isNotEmpty(modifierCodes)) {
             release(robot, modifierCodes);
         }
-        robot.delay(Settings.INSTANCE.getKeystrokeDelay());
+        robot.delay(Settings.getInstance().getKeystrokeDelay());
     }
 
     private static void press(Robot robot, int[] keyCodes) {

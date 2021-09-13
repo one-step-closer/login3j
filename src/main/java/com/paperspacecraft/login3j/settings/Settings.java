@@ -27,9 +27,9 @@ import java.util.prefs.Preferences;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Settings {
-    public static final Settings INSTANCE = new Settings();
+    private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
 
-    private static final Logger LOG = LoggerFactory.getLogger(Main.APP_NAME);
+    private static final Settings INSTANCE = new Settings();
 
     private static final String HOME_DIRECTORY = System.getProperty("user.home");
     private static final Path PATH_UI_SETTINGS = Paths.get(HOME_DIRECTORY, Main.APP_NAME.toLowerCase(), "ui.ini");
@@ -241,5 +241,9 @@ public class Settings {
         AES256TextEncryptor encryptor = new AES256TextEncryptor();
         encryptor.setPassword(password);
         return encryptor.encrypt(value);
+    }
+
+    public static Settings getInstance() {
+        return INSTANCE;
     }
 }

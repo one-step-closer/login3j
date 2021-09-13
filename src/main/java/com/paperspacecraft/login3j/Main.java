@@ -23,8 +23,8 @@ public class Main {
             return;
         }
 
-        Settings.INSTANCE.initializeUnprotected();
-        WindowManager.INSTANCE.refresh();
+        Settings.getInstance().initializeUnprotected();
+        WindowManager.getInstance().refresh();
 
         if (initializeProtectedSettings() != InitializationState.SUCCESS) {
             LOG.error("Unauthorized access or an initialization error. Application will exit");
@@ -48,8 +48,8 @@ public class Main {
     }
 
     private static InitializationState initializeProtectedSettings() {
-        if (Settings.INSTANCE.isAuthorized()) {
-            return Settings.INSTANCE.initializeProtected(StringUtils.EMPTY);
+        if (Settings.getInstance().isAuthorized()) {
+            return Settings.getInstance().initializeProtected(StringUtils.EMPTY);
         }
         boolean isFirstPasswordRequest = true;
         while (true) {
@@ -59,7 +59,7 @@ public class Main {
             if (userPassword == null) {
                 return InitializationState.NOT_AUTHORIZED;
             }
-            InitializationState result = Settings.INSTANCE.initializeProtected(userPassword);
+            InitializationState result = Settings.getInstance().initializeProtected(userPassword);
             if (result != InitializationState.NOT_AUTHORIZED) {
                 return result;
             }

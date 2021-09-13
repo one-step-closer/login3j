@@ -27,8 +27,8 @@ class CustomSynthStyle extends SynthStyle {
 
     void reset() {
         this.colorCache.reset();
-        defaultFont = new Font("Display", Font.PLAIN, Settings.INSTANCE.getFontSize());
-        smallFont = defaultFont.deriveFont((float) Settings.INSTANCE.getFontSize() - 2);
+        defaultFont = new Font("Display", Font.PLAIN, Settings.getInstance().getFontSize());
+        smallFont = defaultFont.deriveFont((float) Settings.getInstance().getFontSize() - 2);
         painter = new BorderPainter(colorCache);
     }
 

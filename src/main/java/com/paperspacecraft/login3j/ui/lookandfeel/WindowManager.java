@@ -18,7 +18,7 @@ import java.util.List;
 public class WindowManager {
     private static final Logger LOG = LoggerFactory.getLogger(WindowManager.class);
 
-    public static final WindowManager INSTANCE = new WindowManager();
+    private static final WindowManager INSTANCE = new WindowManager();
     private static final String CUSTOM_LAF = "custom";
 
     private final List<UpdateableWindow> windows = new ArrayList<>();
@@ -30,9 +30,9 @@ public class WindowManager {
 
         String newLafName = currentLafName;
         boolean hasChanges = false;
-        if (!StringUtils.equals(Settings.INSTANCE.getLookAndFeel(), currentLafName)) {
+        if (!StringUtils.equals(Settings.getInstance().getLookAndFeel(), currentLafName)) {
             try {
-                newLafName = setLookAndFeel(Settings.INSTANCE.getLookAndFeel());
+                newLafName = setLookAndFeel(Settings.getInstance().getLookAndFeel());
                 hasChanges = !StringUtils.equals(currentLafName, newLafName);
             } catch (ApplyLookAndFeelException e) {
                 return;
@@ -44,7 +44,7 @@ public class WindowManager {
             hasChanges = true;
         } else {
             // Otherwise, we just adjust the fonts
-            int fontSize = Settings.INSTANCE.getFontSize();
+            int fontSize = Settings.getInstance().getFontSize();
             if (fontSize != currentFontSize && UIManager.getSystemLookAndFeelClassName().equals(newLafName)) {
                 setFontSize(fontSize);
                 hasChanges = true;
@@ -113,6 +113,10 @@ public class WindowManager {
 
     public void unregister(UpdateableWindow window) {
         windows.remove(window);
+    }
+
+    public static WindowManager getInstance() {
+        return INSTANCE;
     }
 
     private static class ApplyLookAndFeelException extends Exception {}

@@ -36,7 +36,7 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         setType(Type.UTILITY);
 
         update();
-        WindowManager.INSTANCE.register(this);
+        WindowManager.getInstance().register(this);
     }
 
     @Override
@@ -44,14 +44,14 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         while (pnlContent.getComponentCount() > 0) {
             pnlContent.remove(0);
         }
-        Settings.INSTANCE.getActions().forEach(this::addActionItem);
+        Settings.getInstance().getActions().forEach(this::addActionItem);
         SwingUtilities.updateComponentTreeUI(this);
         pack();
     }
 
     @Override
     public void dispose() {
-        WindowManager.INSTANCE.unregister(this);
+        WindowManager.getInstance().unregister(this);
         isDisposed = true;
         super.dispose();
     }
@@ -94,7 +94,7 @@ public class PopupWindow extends JFrame implements UpdateableWindow {
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setFocusable(false);
         button.setOpaque(true);
-        if (action.getCommand() != null && Settings.INSTANCE.getShowTooltips()) {
+        if (action.getCommand() != null && Settings.getInstance().getShowTooltips()) {
             button.setToolTipText(action.getCommand().toString());
         }
         button.addMouseListener(new ButtonMouseAdapter(() -> {

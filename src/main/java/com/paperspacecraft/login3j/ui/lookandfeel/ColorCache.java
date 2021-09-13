@@ -16,7 +16,7 @@ class ColorCache {
 
     public Color get(String key) {
         return colors.computeIfAbsent(key, k -> {
-            String colorString = Settings.INSTANCE.getCustomColor(k);
+            String colorString = Settings.getInstance().getCustomColor(k);
             if (StringUtils.isBlank(colorString)) {
                 return Color.MAGENTA;
             }
