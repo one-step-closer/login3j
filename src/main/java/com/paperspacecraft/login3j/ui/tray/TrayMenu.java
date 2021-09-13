@@ -29,14 +29,14 @@ public abstract class TrayMenu {
     static final String MENU_ID_ENABLE = "menu:enable";
 
     public void initialize() {
-        ActionListener showSettings = e -> SettingsWindow.getInstance().show(Settings.INSTANCE.getWindowBounds());
+        ActionListener showSettings = e -> SettingsWindow.getInstance().show(Settings.getInstance().getWindowBounds());
         addAction("Settings...", StringUtils.EMPTY, showSettings);
 
         addToggleAction(MENU_LABEL_ENABLE, MENU_ID_ENABLE, e -> {
-            GlobalListener.INSTANCE.setEnabled(!GlobalListener.INSTANCE.isEnabled());
-            updateEnabledState(GlobalListener.INSTANCE.isEnabled());
+            GlobalListener.getInstance().setEnabled(!GlobalListener.getInstance().isEnabled());
+            updateEnabledState(GlobalListener.getInstance().isEnabled());
         });
-        updateEnabledState(GlobalListener.INSTANCE.isEnabled());
+        updateEnabledState(GlobalListener.getInstance().isEnabled());
 
         if (SystemHelper.getInstance().isAutostartAvailable()) {
             addToggleAction(MENU_LABEL_ADD_AUTOSTART, MENU_ID_AUTOSTART, e -> {
@@ -53,7 +53,7 @@ public abstract class TrayMenu {
 
 
     public void update() {
-        updateAutostartState(GlobalListener.INSTANCE.isEnabled());
+        updateAutostartState(GlobalListener.getInstance().isEnabled());
         if (SystemHelper.getInstance().isAutostartAvailable()) {
             updateAutostartState(SystemHelper.getInstance().getAutostartState());
         }
@@ -72,19 +72,12 @@ public abstract class TrayMenu {
 
     abstract void setDefaultAction(ActionListener action);
 
-
     public static TrayMenu getInstance() {
-        if (Settings.INSTANCE.isUseSystemTray() && OsUtil.getOsType() == OsType.WINDOWS) {
-            return INSTANCE.updateAndGet(any -> {
-                if (!(any instanceof WindowsTrayMenu)) {
-                    any = new WindowsTrayMenu();
-                }
-                return any;
-            });
-        }
         return INSTANCE.updateAndGet(any -> {
-            if (!(any instanceof CrossPlatformTrayMenu)) {
-                any = new CrossPlatformTrayMenu();
+            if (any == null) {
+                any = Settings.getInstance().isUseSystemTray() && OsUtil.getOsType() == OsType.WINDOWS
+                    ? new CrossPlatformTrayMenu()
+                    : new WindowsTrayMenu();
             }
             return any;
         });

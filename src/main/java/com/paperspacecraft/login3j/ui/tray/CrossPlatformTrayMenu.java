@@ -1,6 +1,7 @@
 package com.paperspacecraft.login3j.ui.tray;
 
 import com.paperspacecraft.login3j.Main;
+import com.paperspacecraft.login3j.util.system.SystemHelper;
 import dorkbox.systemTray.Checkbox;
 import dorkbox.systemTray.Entry;
 import dorkbox.systemTray.MenuItem;
@@ -75,7 +76,9 @@ class CrossPlatformTrayMenu extends TrayMenu {
 
     @Override
     void updateAutostartState(boolean isOn) {
-        if (systemTray == null || systemTray.getMenu().getEntries().isEmpty()) {
+        if (systemTray == null
+                || systemTray.getMenu().getEntries().isEmpty()
+                || !SystemHelper.getInstance().isAutostartAvailable()) {
             return;
         }
         ((Checkbox) itemsCache.get(MENU_ID_AUTOSTART)).setChecked(isOn);
