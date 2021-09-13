@@ -6,26 +6,20 @@ import lombok.Setter;
 
 import java.util.function.Consumer;
 
-abstract class NativeEventProvider {
+public abstract class NativeEventProvider {
 
     @Setter
-    @Getter(value = AccessLevel.PACKAGE)
+    @Getter(value = AccessLevel.PROTECTED)
     private Consumer<MouseEvent> mouseClickCallback;
 
     @Setter
-    @Getter(value = AccessLevel.PACKAGE)
+    @Getter(value = AccessLevel.PROTECTED)
     private Consumer<MouseEvent> mouseDownCallback;
 
     @Setter
-    @Getter(value = AccessLevel.PACKAGE)
+    @Getter(value = AccessLevel.PROTECTED)
     private Consumer<KeyboardEvent> keyTypedCallback;
 
     public abstract boolean enable();
     public abstract boolean disable();
-
-    public abstract void startKeyListener();
-    public abstract void stopKeyListener();
-
-    public abstract void startMouseListener();
-    public abstract void stopMouseListener();
 }

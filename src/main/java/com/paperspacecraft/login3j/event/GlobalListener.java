@@ -1,8 +1,8 @@
 package com.paperspacecraft.login3j.event;
 
+import com.paperspacecraft.login3j.event.provider.WindowsNativeEventProvider;
 import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.settings.action.Action;
-import com.paperspacecraft.login3j.settings.hotkey.Hotkey;
 import com.paperspacecraft.login3j.ui.PopupWindow;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
 import lombok.AllArgsConstructor;
@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class GlobalListener {
@@ -23,7 +24,7 @@ public class GlobalListener {
 
     private final AtomicInteger mouseCount = new AtomicInteger(0);
     private final AtomicInteger lastMouseButton = new AtomicInteger(0);
-    private final AtomicInteger lastMouseModifier = new AtomicInteger(0);
+    private final AtomicReference<InputModifiers> lastMouseModifiers = new AtomicReference<>();
     private Timer multiClickTimer;
 
     private final NativeEventProvider eventProvider;
@@ -32,7 +33,7 @@ public class GlobalListener {
     private final KeyMonitor keyMonitor = new KeyMonitor(Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK));
 
     private GlobalListener() {
-        eventProvider = new DefaultNativeEventProvider();
+        eventProvider = new WindowsNativeEventProvider();
         eventProvider.setMouseClickCallback(this::onMouseClicked);
         eventProvider.setMouseDownCallback(this::onMouseDown);
         eventProvider.setKeyTypedCallback(this::onKeyTyped);
@@ -69,17 +70,12 @@ public class GlobalListener {
     }
 
     public void refresh() {
-        eventProvider.stopKeyListener();
         boolean hasKeyboardHotkeys = Settings.INSTANCE.getActions()
                 .stream()
                 .map(Action::getHotkey)
                 .filter(Objects::nonNull)
                 .anyMatch(hotkey -> hotkey.getEventType() == InputEventType.KEYBOARD);
-        if (hasKeyboardHotkeys) {
-            eventProvider.startKeyListener();
-        }
 
-        eventProvider.stopMouseListener();
         if (multiClickTimer != null) {
             multiClickTimer.stop();
         }
@@ -89,7 +85,6 @@ public class GlobalListener {
                 .filter(Objects::nonNull)
                 .anyMatch(hotkey -> hotkey.getEventType() == InputEventType.MOUSE);
         if (hasMouseHotkeys) {
-            eventProvider.startMouseListener();
             multiClickTimer = new Timer(
                     (int) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval"),
                     e -> clearMouseCounters());
@@ -102,7 +97,7 @@ public class GlobalListener {
     private void clearMouseCounters() {
         mouseCount.set(0);
         lastMouseButton.set(0);
-        lastMouseModifier.set(0);
+        lastMouseModifiers.set(null);
     }
 
     /* -----------------
@@ -111,11 +106,11 @@ public class GlobalListener {
 
     private void onMouseClicked(MouseEvent e) {
         boolean buttonChanged = lastMouseButton.get() != 0 && lastMouseButton.get() != e.getMouseButton();
-        boolean modifierChanged = lastMouseModifier.get() != 0 && lastMouseModifier.get() != e.getModifiers();
+        boolean modifierChanged = !e.getModifiers().equals(lastMouseModifiers.get());
         if (buttonChanged || modifierChanged) {
             clearMouseCounters();
         }
-        lastMouseModifier.set(e.getModifiers());
+        lastMouseModifiers.set(e.getModifiers());
         lastMouseButton.set(e.getMouseButton());
         int atomicClickCount = mouseCount.incrementAndGet();
         if (multiClickTimer != null) {
@@ -156,7 +151,7 @@ public class GlobalListener {
             return;
         }
         
-        if (!Hotkey.isModified(e.getModifiers()) || SettingsWindow.isCurrentlyActive()) {
+        if (!e.getModifiers().present() || SettingsWindow.isCurrentlyActive()) {
             return;
         }
         Settings.INSTANCE.getActions()
@@ -174,7 +169,7 @@ public class GlobalListener {
         if (clickCount < 2) {
             return false;
         }
-        if (clickCount == 2 && e.getMouseButton() == InputEvent.MOUSE_BUTTON_LEFT && !Hotkey.isModified(e.getModifiers())) {
+        if (clickCount == 2 && e.getMouseButton() == InputEvent.MOUSE_BUTTON_LEFT && !e.getModifiers().present()) {
             return false;
         }
         return !SettingsWindow.isCurrentlyActive() && !PopupWindow.isCurrentlyActive();

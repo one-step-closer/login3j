@@ -37,6 +37,8 @@ class DefaultNativeEventProvider extends NativeEventProvider implements NativeKe
             GlobalScreen.registerNativeHook();
             enabled = true;
             hasBeenEnabledBefore = true;
+            GlobalScreen.addNativeKeyListener(this);
+            GlobalScreen.addNativeMouseListener(this);
             return true;
         } catch (NativeHookException e) {
             LOG.error("Could not register global listener hook", e);
@@ -50,6 +52,8 @@ class DefaultNativeEventProvider extends NativeEventProvider implements NativeKe
             return true;
         }
         try {
+            GlobalScreen.removeNativeKeyListener(this);
+            GlobalScreen.removeNativeMouseListener(this);
             GlobalScreen.unregisterNativeHook();
             enabled = false;
             return true;
@@ -57,26 +61,6 @@ class DefaultNativeEventProvider extends NativeEventProvider implements NativeKe
             LOG.error("Could not unregister global listener hook", e);
         }
         return false;
-    }
-
-    @Override
-    public void startKeyListener() {
-        GlobalScreen.addNativeKeyListener(this);
-    }
-
-    @Override
-    public void stopKeyListener() {
-        GlobalScreen.removeNativeKeyListener(this);
-    }
-
-    @Override
-    public void startMouseListener() {
-        GlobalScreen.addNativeMouseListener(this);
-    }
-
-    @Override
-    public void stopMouseListener() {
-        GlobalScreen.removeNativeMouseListener(this);
     }
 
     @Override
