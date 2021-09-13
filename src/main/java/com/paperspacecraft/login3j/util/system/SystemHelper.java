@@ -62,6 +62,6 @@ public abstract class SystemHelper {
         if (osType == OsType.WINDOWS) {
             return INSTANCES.computeIfAbsent(OsType.WINDOWS, os -> new WindowsSystemHelper());
         }
-        return INSTANCES.computeIfAbsent(OsType.WINDOWS, os -> new DefaultSystemHelper());
+        return INSTANCES.computeIfAbsent(OsType.WINDOWS, os -> new CrossPlatformSystemHelper());
     }
 }

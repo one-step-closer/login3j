@@ -2,7 +2,7 @@ package com.paperspacecraft.login3j.util.system;
 
 import org.apache.commons.lang3.StringUtils;
 
-class DefaultSystemHelper extends SystemHelper {
+class CrossPlatformSystemHelper extends SystemHelper {
     @Override
     public boolean isAutostartAvailable() {
         return false;
