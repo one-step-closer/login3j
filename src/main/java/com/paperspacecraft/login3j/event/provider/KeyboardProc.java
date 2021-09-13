@@ -64,7 +64,6 @@ class KeyboardProc implements WinUser.LowLevelKeyboardProc {
     }
 
     private void processKeyDown(int code) {
-//            System.out.println(code + " down");
         if (code == LEFT_ALT || code == RIGHT_ALT) {
             altPressed = true;
         } else if (code == LEFT_CONTROL || code == RIGHT_CONTROL) {
@@ -79,14 +78,13 @@ class KeyboardProc implements WinUser.LowLevelKeyboardProc {
     }
 
     private void processKeyUp(int code) {
-//            System.out.println(code + " up");
-        if (code == 160 || code == 161) {
-            shiftPressed = false;
-        } else if (code == 162 || code == 163) {
-            ctrlPressed = false;
-        } else if (code == 164 || code == 165) {
+        if (code == LEFT_ALT || code == RIGHT_ALT) {
             altPressed = false;
-        } else if (code == 91 || code == 92) {
+        } else if (code == LEFT_CONTROL || code == RIGHT_CONTROL) {
+            ctrlPressed = false;
+        } else if (code == LEFT_SHIFT || code == RIGHT_SHIFT) {
+            shiftPressed = false;
+        } else if (code == LEFT_WIN || code == RIGHT_WIN) {
             winPressed = false;
         } else if (pressedKeys.contains(code)) {
             pressedKeys.remove(code);
@@ -95,5 +93,4 @@ class KeyboardProc implements WinUser.LowLevelKeyboardProc {
             }
         }
     }
-
 }
