@@ -74,10 +74,10 @@ class WindowsTypingHelper extends TypingHelper {
     }
 
     private void setNumlockOn(Robot robot) {
-        numlockOn = GlobalListener.INSTANCE.getKeyMonitor().isNumLockOn();
+        numlockOn = GlobalListener.getInstance().getKeyMonitor().isNumLockOn();
         if (!numlockOn) {
             type(robot, VK_NUM_LOCK); // Try to turn on numlock; then set "changed" flag if it is actually on
-            numlockOn = GlobalListener.INSTANCE.getKeyMonitor().isNumLockOn();
+            numlockOn = GlobalListener.getInstance().getKeyMonitor().isNumLockOn();
             numlockChanged = numlockOn;
         }
     }

@@ -32,8 +32,8 @@ public class Main {
         }
 
         applySettings();
-        GlobalListener.INSTANCE.setEnabled(Settings.INSTANCE.isStartEnabled());
-        Settings.INSTANCE.setCallback(Main::applySettings);
+        GlobalListener.getInstance().setEnabled(Settings.getInstance().isStartEnabled());
+        Settings.getInstance().setCallback(Main::applySettings);
         TrayMenu.getInstance().initialize();
     }
 
@@ -68,8 +68,8 @@ public class Main {
     }
 
     private static void applySettings() {
-        GlobalListener.INSTANCE.refresh();
-        WindowManager.INSTANCE.refresh();
+        GlobalListener.getInstance().refresh();
+        WindowManager.getInstance().refresh();
         TrayMenu.getInstance().update();
     }
 }

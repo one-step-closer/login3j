@@ -5,19 +5,29 @@ import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.settings.action.Action;
 import com.paperspacecraft.login3j.ui.PopupWindow;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
+import com.paperspacecraft.login3j.util.OsType;
+import com.paperspacecraft.login3j.util.OsUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class GlobalListener {
-    public static final GlobalListener INSTANCE = new GlobalListener();
+    private static final Logger LOG = LoggerFactory.getLogger(GlobalListener.class);
+
+    private static final AtomicReference<GlobalListener> INSTANCE = new AtomicReference<>();
+    private static final Map<OsType, Supplier<NativeEventProvider>> EVENT_PROVIDERS = new EnumMap<>(OsType.class);
 
     private boolean enabled;
     private boolean listenersInstalled;
@@ -32,8 +42,9 @@ public class GlobalListener {
     @Getter
     private final KeyMonitor keyMonitor = new KeyMonitor(Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK));
 
-    private GlobalListener() {
-        eventProvider = new WindowsNativeEventProvider();
+    private GlobalListener(NativeEventProvider eventProvider) {
+        this.eventProvider = eventProvider;
+        LOG.info("Using {}", eventProvider.getClass().getName());
         eventProvider.setMouseClickCallback(this::onMouseClicked);
         eventProvider.setMouseDownCallback(this::onMouseDown);
         eventProvider.setKeyTypedCallback(this::onKeyTyped);
@@ -70,7 +81,7 @@ public class GlobalListener {
     }
 
     public void refresh() {
-        boolean hasKeyboardHotkeys = Settings.INSTANCE.getActions()
+        boolean hasKeyboardHotkeys = Settings.getInstance().getActions()
                 .stream()
                 .map(Action::getHotkey)
                 .filter(Objects::nonNull)
@@ -79,7 +90,7 @@ public class GlobalListener {
         if (multiClickTimer != null) {
             multiClickTimer.stop();
         }
-        boolean hasMouseHotkeys = Settings.INSTANCE.getActions()
+        boolean hasMouseHotkeys = Settings.getInstance().getActions()
                 .stream()
                 .map(com.paperspacecraft.login3j.settings.action.Action::getHotkey)
                 .filter(Objects::nonNull)
@@ -119,7 +130,7 @@ public class GlobalListener {
         if (!isValidMouseEvent(e, atomicClickCount)) {
             return;
         }
-        Settings.INSTANCE.getActions()
+        Settings.getInstance().getActions()
                 .stream()
                 .filter(action -> action.getHotkey() != null && action.getCommand() != null)
                 .filter(action -> action.getHotkey().matches(e, atomicClickCount))
@@ -154,7 +165,7 @@ public class GlobalListener {
         if (!e.getModifiers().present() || SettingsWindow.isCurrentlyActive()) {
             return;
         }
-        Settings.INSTANCE.getActions()
+        Settings.getInstance().getActions()
                 .stream()
                 .filter(action -> action.getHotkey() != null && action.getCommand() != null)
                 .filter(action -> action.getHotkey().matches(e))
@@ -179,6 +190,26 @@ public class GlobalListener {
         SwingUtilities.invokeLater(() -> command.accept(e));
     }
 
+
+    /* ---------------
+       Factory methods
+       --------------- */
+
+    public static GlobalListener getInstance() {
+        return INSTANCE.updateAndGet(any -> {
+            if (any == null) {
+                Supplier<NativeEventProvider> eventProviderSupplier = EVENT_PROVIDERS.getOrDefault(
+                        OsUtil.getOsType(),
+                        WindowsNativeEventProvider::new);
+                any = new GlobalListener(eventProviderSupplier.get());
+            }
+            return any;
+        });
+    }
+
+    public static void registerEventProvider(OsType osType, Supplier<NativeEventProvider> value) {
+        EVENT_PROVIDERS.put(osType, value);
+    }
 
     /* ---------------
        Service classes
