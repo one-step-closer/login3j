@@ -3,10 +3,14 @@ package com.paperspacecraft.login3j.event;
 import lombok.Getter;
 
 @Getter
-class KeyboardEvent extends InputEvent {
+public class KeyboardEvent extends InputEvent {
     private final int keyCode;
 
     public KeyboardEvent(int keyCode, int modifiers) {
+        this(keyCode, InputModifiers.from(modifiers));
+    }
+
+    public KeyboardEvent(int keyCode, InputModifiers modifiers) {
         super(modifiers);
         this.keyCode = keyCode;
     }

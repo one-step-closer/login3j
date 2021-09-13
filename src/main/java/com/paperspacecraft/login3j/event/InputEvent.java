@@ -9,7 +9,7 @@ public abstract class InputEvent {
     public static final int MOUSE_BUTTON_MIDDLE = 3;
 
     @Getter
-    private final int modifiers;
+    private final InputModifiers modifiers;
 
     public abstract InputEventType getType();
 
@@ -21,7 +21,7 @@ public abstract class InputEvent {
 
     public abstract int getMousePointY();
 
-    InputEvent(int modifiers) {
+    InputEvent(InputModifiers modifiers) {
         this.modifiers = modifiers;
     }
 

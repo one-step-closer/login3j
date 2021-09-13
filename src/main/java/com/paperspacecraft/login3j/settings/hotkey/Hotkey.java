@@ -1,8 +1,8 @@
 package com.paperspacecraft.login3j.settings.hotkey;
 
-import com.github.kwhat.jnativehook.NativeInputEvent;
 import com.paperspacecraft.login3j.event.InputEvent;
 import com.paperspacecraft.login3j.event.InputEventType;
+import com.paperspacecraft.login3j.event.InputModifiers;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -16,10 +16,10 @@ import java.util.regex.Pattern;
 public abstract class Hotkey {
     private static final Pattern MOUSE_HOTKEY = Pattern.compile("^([!^+]*)([LMR])Button(\\d*)$");
     @SuppressWarnings("squid:S5998")
-    private static final Pattern KEYBOARD_HOTKEY = Pattern.compile("^([!^+]|(?:(?:Alt|Ctrl|Shift)\\s+&\\s+))+([a-zA-Z0-9.,;'`\\[\\]/\\\\+*-])$");
-    private static final Pattern SIMPLE_MODIFIERS = Pattern.compile("[!^+]+");
+    private static final Pattern KEYBOARD_HOTKEY = Pattern.compile("^([!^+#]|(?:(?:Alt|Ctrl|Shift)\\s+&\\s+))+([a-zA-Z0-9.,;'`\\[\\]/\\\\+*-])$");
+    private static final Pattern SIMPLE_MODIFIERS = Pattern.compile("[!^+#]+");
 
-    private List<Predicate<Integer>> modifierTesters;
+    private List<Predicate<InputModifiers>> modifierTesters;
 
     @Getter(value = AccessLevel.PACKAGE)
     private String modifierString;
@@ -30,8 +30,8 @@ public abstract class Hotkey {
 
     public abstract boolean matches(InputEvent e, int count);
 
-    boolean matchesModifiers(int targetModifiers) {
-        return modifierTesters == null || modifierTesters.stream().allMatch(tester -> tester.test(targetModifiers));
+    boolean matchesModifiers(InputModifiers target) {
+        return modifierTesters == null || modifierTesters.stream().allMatch(tester -> tester.test(target));
     }
 
     void setModifiers(String value) {
@@ -51,26 +51,33 @@ public abstract class Hotkey {
         if (SIMPLE_MODIFIERS.matcher(value).matches()) {
             for (Character chr : value.toCharArray()) {
                 if (chr == '!') {
-                    modifierTesters.add(Hotkey::isAlt);
+                    modifierTesters.add(InputModifiers::isAlt);
                     labelBuilder.append("Alt-");
                 } else if (chr == '^') {
-                    modifierTesters.add(Hotkey::isCtrl);
+                    modifierTesters.add(InputModifiers::isControl);
                     labelBuilder.append("Ctrl-");
                 } else if (chr == '+') {
-                    modifierTesters.add(Hotkey::isShift);
+                    modifierTesters.add(InputModifiers::isShift);
                     labelBuilder.append("Shift-");
+                } else if (chr == '#') {
+                    modifierTesters.add(InputModifiers::isMeta);
+                    labelBuilder.append("Meta-");
                 }
             }
         } else if ("Alt".equals(value)) {
-            modifierTesters.add(Hotkey::isAlt);
+            modifierTesters.add(InputModifiers::isAlt);
             labelBuilder.append("Alt-");
         } else if ("Ctrl".equals(value)) {
-            modifierTesters.add(Hotkey::isCtrl);
+            modifierTesters.add(InputModifiers::isControl);
             labelBuilder.append("Ctrl-");
         } else if ("Shift".equals(value)) {
-            modifierTesters.add(Hotkey::isShift);
+            modifierTesters.add(InputModifiers::isShift);
             labelBuilder.append("Shift-");
+        } else if (StringUtils.equalsAny(value, "Win", "Meta")) {
+            modifierTesters.add(InputModifiers::isMeta);
+            labelBuilder.append("Meta-");
         }
+
     }
 
     public static Hotkey parse(String value) {
@@ -93,24 +100,5 @@ public abstract class Hotkey {
             return keyboardHotkey;
         }
         return null;
-    }
-
-    public static boolean isModified(int modifiers) {
-        return isCtrl(modifiers) || isAlt(modifiers) || isShift(modifiers);
-    }
-
-    private static boolean isCtrl(int modifiers) {
-        return (modifiers & NativeInputEvent.CTRL_L_MASK) == NativeInputEvent.CTRL_L_MASK
-                || (modifiers & NativeInputEvent.CTRL_R_MASK) == NativeInputEvent.CTRL_R_MASK;
-    }
-
-    private static boolean isAlt(Integer modifiers) {
-        return (modifiers & NativeInputEvent.ALT_L_MASK) == NativeInputEvent.ALT_L_MASK
-                || (modifiers & NativeInputEvent.ALT_R_MASK) == NativeInputEvent.ALT_R_MASK;
-    }
-
-    private static boolean isShift(int modifiers) {
-        return (modifiers & NativeInputEvent.SHIFT_L_MASK) == NativeInputEvent.SHIFT_L_MASK
-                || (modifiers & NativeInputEvent.SHIFT_R_MASK) == NativeInputEvent.SHIFT_R_MASK;
     }
 }
