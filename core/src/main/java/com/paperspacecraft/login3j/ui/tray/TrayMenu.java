@@ -75,7 +75,7 @@ public abstract class TrayMenu {
     public static TrayMenu getInstance() {
         return INSTANCE.updateAndGet(any -> {
             if (any == null) {
-                any = Settings.getInstance().isUseSystemTray() && OsUtil.getOsType() == OsType.WINDOWS
+                any = !Settings.getInstance().isUseSystemTray() || OsUtil.getOsType() != OsType.WINDOWS
                     ? new CrossPlatformTrayMenu()
                     : new WindowsTrayMenu();
             }

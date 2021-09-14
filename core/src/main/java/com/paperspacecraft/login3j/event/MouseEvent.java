@@ -10,10 +10,6 @@ public class MouseEvent extends InputEvent {
     private final int mouseButton;
     private final Point mousePoint;
 
-    public MouseEvent(int mouseButton, int modifiers) {
-        this(mouseButton, InputModifiers.from(modifiers));
-    }
-
     public MouseEvent(int mouseButton, InputModifiers modifiers) {
         super(modifiers);
         this.mouseButton = mouseButton;

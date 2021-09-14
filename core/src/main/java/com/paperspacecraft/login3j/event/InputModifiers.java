@@ -1,6 +1,5 @@
 package com.paperspacecraft.login3j.event;
 
-import com.github.kwhat.jnativehook.NativeInputEvent;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,6 +9,8 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class InputModifiers {
+    static final InputModifiers EMPTY = new InputModifiers();
+
     private boolean shift;
     private boolean control;
     private boolean alt;
@@ -19,20 +20,7 @@ public class InputModifiers {
         return shift || control || alt || meta;
     }
 
-    public static InputModifiers from(int value) {
-        InputModifiers result = new InputModifiers();
-        result.control = (value & NativeInputEvent.CTRL_L_MASK) == NativeInputEvent.CTRL_L_MASK
-                || (value & NativeInputEvent.CTRL_R_MASK) == NativeInputEvent.CTRL_R_MASK;
-        result.alt = (value & NativeInputEvent.ALT_L_MASK) == NativeInputEvent.ALT_L_MASK
-                || (value & NativeInputEvent.ALT_R_MASK) == NativeInputEvent.ALT_R_MASK;
-        result.shift = (value & NativeInputEvent.SHIFT_L_MASK) == NativeInputEvent.SHIFT_L_MASK
-                || (value & NativeInputEvent.SHIFT_R_MASK) == NativeInputEvent.SHIFT_R_MASK;
-        result.meta = (value & NativeInputEvent.META_MASK) == NativeInputEvent.META_MASK
-                || (value & NativeInputEvent.META_L_MASK) == NativeInputEvent.META_L_MASK
-                || (value & NativeInputEvent.META_R_MASK) == NativeInputEvent.META_R_MASK;
-        return result;
-    }
-    public static Builder from() {
+    public static Builder builder() {
         return new Builder();
     }
 

@@ -1,17 +1,22 @@
-package com.paperspacecraft.login3j.event;
+package com.paperspacecraft.login3j.ext.event.provider;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
+import com.github.kwhat.jnativehook.NativeInputEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseInputListener;
+import com.paperspacecraft.login3j.event.InputModifiers;
+import com.paperspacecraft.login3j.event.KeyboardEvent;
+import com.paperspacecraft.login3j.event.MouseEvent;
+import com.paperspacecraft.login3j.event.NativeEventProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.logging.Level;
 
-class DefaultNativeEventProvider extends NativeEventProvider implements NativeKeyListener, NativeMouseInputListener {
+public class DefaultNativeEventProvider extends NativeEventProvider implements NativeKeyListener, NativeMouseInputListener {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultNativeEventProvider.class);
 
     private boolean enabled;
@@ -41,7 +46,7 @@ class DefaultNativeEventProvider extends NativeEventProvider implements NativeKe
             GlobalScreen.addNativeMouseListener(this);
             return true;
         } catch (NativeHookException e) {
-            LOG.error("Could not register global listener hook", e);
+            LOG.error("Could not register listener hook", e);
         }
         return false;
     }
@@ -58,7 +63,7 @@ class DefaultNativeEventProvider extends NativeEventProvider implements NativeKe
             enabled = false;
             return true;
         } catch (NativeHookException e) {
-            LOG.error("Could not unregister global listener hook", e);
+            LOG.error("Could not unregister listener hook", e);
         }
         return false;
     }
@@ -66,21 +71,34 @@ class DefaultNativeEventProvider extends NativeEventProvider implements NativeKe
     @Override
     public void nativeMouseClicked(NativeMouseEvent e) {
         if (getMouseClickCallback() != null) {
-            getMouseClickCallback().accept(new MouseEvent(e.getButton(), e.getModifiers()));
+            getMouseClickCallback().accept(new MouseEvent(e.getButton(), convertModifiers(e.getModifiers())));
         }
     }
 
     @Override
     public void nativeMousePressed(NativeMouseEvent e) {
         if (getMouseDownCallback() != null) {
-            getMouseDownCallback().accept(new MouseEvent(e.getButton(), e.getModifiers()));
+            getMouseDownCallback().accept(new MouseEvent(e.getButton(), convertModifiers(e.getModifiers())));
         }
     }
 
     @Override
     public void nativeKeyTyped(NativeKeyEvent e) {
         if (getKeyTypedCallback() != null) {
-            getKeyTypedCallback().accept(new KeyboardEvent(e.getRawCode(), e.getModifiers()));
+            getKeyTypedCallback().accept(new KeyboardEvent(e.getRawCode(), convertModifiers(e.getModifiers())));
         }
+    }
+
+    private static InputModifiers convertModifiers(int value) {
+        boolean control = (value & NativeInputEvent.CTRL_L_MASK) == NativeInputEvent.CTRL_L_MASK
+                || (value & NativeInputEvent.CTRL_R_MASK) == NativeInputEvent.CTRL_R_MASK;
+        boolean alt = (value & NativeInputEvent.ALT_L_MASK) == NativeInputEvent.ALT_L_MASK
+                || (value & NativeInputEvent.ALT_R_MASK) == NativeInputEvent.ALT_R_MASK;
+        boolean shift = (value & NativeInputEvent.SHIFT_L_MASK) == NativeInputEvent.SHIFT_L_MASK
+                || (value & NativeInputEvent.SHIFT_R_MASK) == NativeInputEvent.SHIFT_R_MASK;
+        boolean meta = (value & NativeInputEvent.META_MASK) == NativeInputEvent.META_MASK
+                || (value & NativeInputEvent.META_L_MASK) == NativeInputEvent.META_L_MASK
+                || (value & NativeInputEvent.META_R_MASK) == NativeInputEvent.META_R_MASK;
+        return InputModifiers.builder().alt(alt).control(control).shift(shift).meta(meta).build();
     }
 }

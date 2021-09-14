@@ -55,7 +55,7 @@ class KeyboardProc implements WinUser.LowLevelKeyboardProc {
     }
 
     InputModifiers getModifiers() {
-        return InputModifiers.from()
+        return InputModifiers.builder()
                 .alt(altPressed)
                 .control(ctrlPressed)
                 .shift(shiftPressed)

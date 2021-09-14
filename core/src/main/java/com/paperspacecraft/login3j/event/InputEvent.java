@@ -26,6 +26,6 @@ public abstract class InputEvent {
     }
 
     public static InputEvent newInstance() {
-        return new MouseEvent(0, 0);
+        return new MouseEvent(0, InputModifiers.EMPTY);
     }
 }
