@@ -1,7 +1,6 @@
 package com.paperspacecraft.login3j.util.system;
 
-import com.paperspacecraft.login3j.util.OsType;
-import com.paperspacecraft.login3j.util.OsUtil;
+import com.paperspacecraft.login3j.util.Os;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ public abstract class SystemHelper {
 
     private static final int COMMAND_TIMEOUT_MS = 3000;
 
-    private static final Map<OsType, SystemHelper> INSTANCES = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<Os, SystemHelper> INSTANCES = Collections.synchronizedMap(new HashMap<>());
 
     /* --------------
        Public methods
@@ -58,10 +57,9 @@ public abstract class SystemHelper {
     }
 
     public static SystemHelper getInstance() {
-        OsType osType = OsUtil.getOsType();
-        if (osType == OsType.WINDOWS) {
-            return INSTANCES.computeIfAbsent(OsType.WINDOWS, os -> new WindowsSystemHelper());
+        if (Os.getInstance() == Os.WINDOWS) {
+            return INSTANCES.computeIfAbsent(Os.WINDOWS, os -> new WindowsSystemHelper());
         }
-        return INSTANCES.computeIfAbsent(OsType.WINDOWS, os -> new CrossPlatformSystemHelper());
+        return INSTANCES.computeIfAbsent(Os.WINDOWS, os -> new CrossPlatformSystemHelper());
     }
 }

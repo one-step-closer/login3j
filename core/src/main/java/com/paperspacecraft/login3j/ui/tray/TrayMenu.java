@@ -4,8 +4,7 @@ import com.paperspacecraft.login3j.Main;
 import com.paperspacecraft.login3j.event.GlobalListener;
 import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
-import com.paperspacecraft.login3j.util.OsType;
-import com.paperspacecraft.login3j.util.OsUtil;
+import com.paperspacecraft.login3j.util.Os;
 import com.paperspacecraft.login3j.util.system.SystemHelper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -75,7 +74,7 @@ public abstract class TrayMenu {
     public static TrayMenu getInstance() {
         return INSTANCE.updateAndGet(any -> {
             if (any == null) {
-                any = !Settings.getInstance().isUseSystemTray() || OsUtil.getOsType() != OsType.WINDOWS
+                any = !Settings.getInstance().isUseSystemTray() || Os.getInstance() != Os.WINDOWS
                     ? new CrossPlatformTrayMenu()
                     : new WindowsTrayMenu();
             }

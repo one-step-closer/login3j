@@ -1,12 +1,12 @@
 package com.paperspacecraft.login3j.util.typing;
 
+import com.paperspacecraft.login3j.util.Os;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import com.paperspacecraft.login3j.settings.Settings;
-import com.paperspacecraft.login3j.util.OsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,10 +94,10 @@ public abstract class TypingHelper {
     }
 
     public static TypingHelper getInstance() {
-        switch (OsUtil.getOsType()) {
+        switch (Os.getInstance()) {
             case MAC: return new MacTypingHelper();
             case WINDOWS: return new WindowsTypingHelper();
-            default: return new WindowsTypingHelper();
+            default: return new UnixTypingHelper();
         }
     }
 }

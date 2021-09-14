@@ -1,19 +1,22 @@
 package com.paperspacecraft.login3j.util;
 
-import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
-@UtilityClass
-public class OsUtil {
+public enum Os {
+    ANY,
+    UNIX,
+    WINDOWS,
+    MAC;
 
-    public static OsType getOsType() {
+    public static Os getInstance() {
         String osName = System.getProperty("os.name", "generic");
         if (StringUtils.containsAnyIgnoreCase(osName, "mac", "darwin")) {
-            return OsType.MAC;
+            return Os.MAC;
         } else if (StringUtils.containsIgnoreCase(osName, "win")) {
-            return OsType.WINDOWS;
+            return Os.WINDOWS;
         } else {
-            return OsType.UNIX;
+            return Os.UNIX;
         }
     }
+
 }
