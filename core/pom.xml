@@ -70,7 +70,6 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/java</sourceDirectory>
         <finalName>${project.parent.artifactId}-${project.version}.jar</finalName>
         <plugins>
             <plugin>

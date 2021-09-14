@@ -16,13 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.logging.Level;
 
-public class DefaultNativeEventProvider extends NativeEventProvider implements NativeKeyListener, NativeMouseInputListener {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultNativeEventProvider.class);
+public class CrossPlatformNativeEventProvider extends NativeEventProvider implements NativeKeyListener, NativeMouseInputListener {
+    private static final Logger LOG = LoggerFactory.getLogger(CrossPlatformNativeEventProvider.class);
 
     private boolean enabled;
     private boolean hasBeenEnabledBefore;
 
-    public DefaultNativeEventProvider() {
+    public CrossPlatformNativeEventProvider() {
         // Disabling the *jnativehook* logger
         java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
