@@ -1,12 +1,11 @@
 package com.paperspacecraft.login3j.event;
 
+import com.paperspacecraft.login3j.Bootstrapper;
 import com.paperspacecraft.login3j.event.provider.WindowsNativeEventProvider;
 import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.settings.action.Action;
 import com.paperspacecraft.login3j.ui.PopupWindow;
 import com.paperspacecraft.login3j.ui.SettingsWindow;
-import com.paperspacecraft.login3j.util.OsType;
-import com.paperspacecraft.login3j.util.OsUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -27,7 +26,6 @@ public class GlobalListener {
     private static final Logger LOG = LoggerFactory.getLogger(GlobalListener.class);
 
     private static final AtomicReference<GlobalListener> INSTANCE = new AtomicReference<>();
-    private static final Map<OsType, Supplier<NativeEventProvider>> EVENT_PROVIDERS = new EnumMap<>(OsType.class);
 
     private boolean enabled;
     private boolean listenersInstalled;
@@ -198,17 +196,10 @@ public class GlobalListener {
     public static GlobalListener getInstance() {
         return INSTANCE.updateAndGet(any -> {
             if (any == null) {
-                Supplier<NativeEventProvider> eventProviderSupplier = EVENT_PROVIDERS.getOrDefault(
-                        OsUtil.getOsType(),
-                        WindowsNativeEventProvider::new);
-                any = new GlobalListener(eventProviderSupplier.get());
+                any = new GlobalListener(Bootstrapper.getInstance().getEventProvider(WindowsNativeEventProvider::new));
             }
             return any;
         });
-    }
-
-    public static void registerEventProvider(OsType osType, Supplier<NativeEventProvider> value) {
-        EVENT_PROVIDERS.put(osType, value);
     }
 
     /* ---------------

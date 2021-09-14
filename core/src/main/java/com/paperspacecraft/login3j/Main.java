@@ -6,6 +6,7 @@ import com.paperspacecraft.login3j.settings.Settings;
 import com.paperspacecraft.login3j.ui.PasswordDialog;
 import com.paperspacecraft.login3j.ui.lookandfeel.WindowManager;
 import com.paperspacecraft.login3j.ui.tray.TrayMenu;
+import com.paperspacecraft.login3j.util.ExtensionUtil;
 import it.sauronsoftware.junique.AlreadyLockedException;
 import it.sauronsoftware.junique.JUnique;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,8 @@ public class Main {
         if (!ensureSingleInstance()) {
             return;
         }
+
+        ExtensionUtil.loadExtensions();
 
         Settings.getInstance().initializeUnprotected();
         WindowManager.getInstance().refresh();
